@@ -1,0 +1,6 @@
+mysql:
+  hostname: ralenga.tk #78.47.85.134
+  port: 3306
+  username: test
+  password: "test"
+  database: testing

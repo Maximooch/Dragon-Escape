@@ -1,0 +1,21 @@
+name: DragonEscape
+version: 1.0
+main: me.radoje17.dragonescape.DragonEscape
+depend: [FastAsyncWorldEdit, WorldEdit]
+softdepend: [Cubics]
+commands:
+  dragonescape:
+    aliases: [de, dragone, descape]
+  dragonescapeadmin:
+    aliases: [dea]
+  join:
+  leave:
+  browse:
+  solo:
+  public:
+  settings:
+  leaderboard:
+  stats:
+  practice:
+  spectate:
+  random:
