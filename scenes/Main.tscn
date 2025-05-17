@@ -1,0 +1,8 @@
+[gd_scene load_steps=3 format=2]
+
+[node name="Main" type="Node2D"]
+script = ExtResource("res://scripts/Main.gd")
+
+[node name="Player" parent="." instance=ExtResource("res://scenes/Player.tscn")]
+
+[node name="Dragon" parent="." instance=ExtResource("res://scenes/Dragon.tscn")]

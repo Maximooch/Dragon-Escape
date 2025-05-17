@@ -1,0 +1,8 @@
+[gd_resource type="ConfigFile" load_steps=2 format=2]
+
+[application]
+config/name="Dragon Escape"
+config/description="An arcade game where players do parkour to escape a dragon."
+
+[rendering]
+quality/intended_usage/framebuffer_allocation=2
