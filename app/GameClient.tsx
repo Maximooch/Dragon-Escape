@@ -15,6 +15,7 @@ const initialView: GameView = {
   online: false,
   eliminated: false,
   pointerLocked: false,
+  audioState: "idle",
 };
 
 export function GameClient() {
@@ -37,6 +38,31 @@ export function GameClient() {
   }, [name]);
 
   const focusGame = () => runtimeRef.current?.capturePointer();
+  const testSound = () => {
+    if (muted) {
+      setMuted(false);
+      runtimeRef.current?.setMuted(false);
+    } else {
+      runtimeRef.current?.testSound();
+    }
+  };
+  const toggleSound = () => {
+    if (!muted && view.audioState !== "ready") {
+      runtimeRef.current?.testSound();
+      return;
+    }
+    const next = !muted;
+    setMuted(next);
+    runtimeRef.current?.setMuted(next);
+  };
+
+  const audioLabel = muted
+    ? "SOUND OFF"
+    : view.audioState === "ready"
+      ? "AUDIO READY"
+      : view.audioState === "blocked"
+        ? "AUDIO BLOCKED"
+        : "SOUND ON";
 
   return (
     <main className="game-shell">
@@ -48,21 +74,25 @@ export function GameClient() {
         <div className={`connection ${view.online ? "online" : ""}`}>
           <i /> {view.online ? "PUBLIC ROOM" : "DEMO RIVALS"}
         </div>
-        <button className="sound-button" onClick={() => { const next = !muted; setMuted(next); runtimeRef.current?.setMuted(next); }} aria-label={muted ? "Unmute" : "Mute"}>
-          {muted ? "SOUND OFF" : "SOUND ON"}
+        <button className="sound-button" onClick={toggleSound} aria-label={muted ? "Unmute" : view.audioState === "ready" ? "Mute" : "Enable sound"}>
+          {audioLabel}
         </button>
       </header>
 
       {view.phase === "menu" && (
         <section className="menu-panel">
-          <p className="eyebrow">PUBLIC PLAYTEST // BUILD 002</p>
+          <p className="eyebrow">PUBLIC PLAYTEST // BUILD 003</p>
           <h1>OUTRUN<br /><em>THE END.</em></h1>
-          <p className="intro">Grumble Volcano is collapsing. Reach sanctuary before the dragon turns the route to cinders.</p>
+          <p className="intro">Salto is collapsing. Climb the floating archipelago before the dragon tears it from the sky.</p>
           <label className="name-field">
             <span>RUNNER NAME</span>
             <input value={name} maxLength={18} onChange={(event) => setName(event.target.value)} onKeyDown={(event) => event.key === "Enter" && join()} />
           </label>
           <button className="join-button" onClick={join}><span>JOIN NEXT RACE</span><b>→</b></button>
+          <button className={`audio-test ${view.audioState}`} onClick={testSound}>
+            <span>TEST SOUND</span>
+            <b>{view.audioState === "ready" ? "AUDIBLE?" : view.audioState.toUpperCase()}</b>
+          </button>
           <div className="control-grid">
             <span><kbd>WASD</kbd> MOVE</span>
             <span><kbd>SPACE</kbd> JUMP</span>
@@ -77,7 +107,7 @@ export function GameClient() {
         <>
           <div className="crosshair" aria-hidden="true"><i /><i /></div>
           <aside className="race-card">
-            <p>GRUMBLE VOLCANO // TEST MAP</p>
+            <p>SALTO // OWNED TEST MAP</p>
             <strong>{view.checkpoint}</strong>
             <div className="progress-track"><i style={{ width: `${view.progress}%` }} /></div>
             <div className="race-stats">

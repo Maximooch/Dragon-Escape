@@ -38,6 +38,12 @@ button { color: inherit; }
 .join-button { width: 100%; min-height: 58px; display: flex; justify-content: space-between; align-items: center; padding: 0 20px; border: 0; background: var(--ember); color: #160703; font-size: 12px; font-weight: 900; letter-spacing: .12em; cursor: pointer; transition: transform .15s, filter .15s; }
 .join-button:hover { transform: translate(-2px, -2px); filter: brightness(1.1); }
 .join-button b { font-size: 26px; }
+.audio-test { width: 100%; min-height: 36px; display: flex; justify-content: space-between; align-items: center; margin-top: 8px; padding: 0 12px; border: 1px solid #4b443f; background: rgba(0,0,0,.28); color: #a9a097; font-size: 8px; letter-spacing: .14em; cursor: pointer; }
+.audio-test b { color: #756d66; font-size: 8px; }
+.audio-test.ready { border-color: rgba(88,227,210,.45); }
+.audio-test.ready b { color: var(--cyan); }
+.audio-test.blocked { border-color: rgba(255,74,22,.7); }
+.audio-test.blocked b { color: var(--ember); }
 .control-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 14px; margin-top: 20px; font-size: 9px; color: #978d84; }
 kbd { display: inline-flex; min-width: 46px; justify-content: center; margin-right: 7px; padding: 5px 6px; border: 1px solid #4c4540; color: #e4dacf; background: rgba(255,255,255,.04); box-shadow: 0 2px 0 #211d1b; font-size: 9px; }
 .tip { margin: 18px 0 0; color: #6f6761; font-size: 9px; }

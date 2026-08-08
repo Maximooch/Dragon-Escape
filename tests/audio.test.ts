@@ -28,3 +28,15 @@ test("an already running audio context is not resumed again", () => {
   assert.equal(unlockAudioContext(context, () => context), context);
   assert.deepEqual(calls, []);
 });
+
+test("a rejected resume is surfaced without an unhandled promise", async () => {
+  let rejected = false;
+  const context = {
+    state: "suspended",
+    resume: async () => { throw new Error("blocked"); },
+  };
+
+  unlockAudioContext(context, () => context, () => { rejected = true; });
+  await new Promise((resolve) => setTimeout(resolve, 0));
+  assert.equal(rejected, true);
+});

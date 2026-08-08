@@ -9,6 +9,7 @@ visual reference mesh, not the authoritative gameplay collision map.
 from __future__ import annotations
 
 import argparse
+import json
 from pathlib import Path
 
 import nbtlib
@@ -86,7 +87,7 @@ def block_color(block_id: int) -> tuple[int, int, int, int]:
     return (54, 49, 61, 255)
 
 
-def build_schematic(source: Path, path: Path, factor: int) -> None:
+def load_coarse_schematic(source: Path, factor: int) -> np.ndarray:
     root = nbtlib.load(source, gzipped=True)
     width, height, length = (int(root[key]) for key in ("Width", "Height", "Length"))
     fine = np.frombuffer(bytes(root["Blocks"]), dtype=np.uint8).reshape((height, length, width))
@@ -94,7 +95,11 @@ def build_schematic(source: Path, path: Path, factor: int) -> None:
     padded = np.zeros(tuple(value * factor for value in coarse_shape), dtype=np.uint8)
     padded[:height, :length, :width] = fine
     grouped = padded.reshape(coarse_shape[0], factor, coarse_shape[1], factor, coarse_shape[2], factor)
-    coarse = grouped.max(axis=(1, 3, 5))
+    return grouped.max(axis=(1, 3, 5))
+
+
+def build_schematic(source: Path, path: Path, factor: int) -> np.ndarray:
+    coarse = load_coarse_schematic(source, factor)
 
     vertices: list[tuple[float, float, float]] = []
     faces: list[tuple[int, int, int]] = []
@@ -126,6 +131,99 @@ def build_schematic(source: Path, path: Path, factor: int) -> None:
     scene = trimesh.Scene(mesh)
     path.write_bytes(trimesh.exchange.gltf.export_glb(scene))
     print(f"{source.name}: {len(occupied):,} voxels, {len(faces):,} triangles -> {path}")
+    return coarse
+
+
+def build_collision_course(
+    coarse: np.ndarray,
+    path: Path,
+    factor: int,
+    scale: float,
+    start: tuple[int, int],
+    finish: tuple[int, int],
+    start_y: int | None,
+) -> None:
+    """Emit merged 3D collision cuboids aligned to the visual GLB."""
+    ch, cl, cw = coarse.shape
+    # Decorative/non-colliding legacy IDs. Shape-specific blocks such as stairs,
+    # slabs, fences, and panes remain conservative full-cube proxies for now.
+    non_solid = [0, 6, 8, 9, 10, 11, 31, 32, 37, 38, 39, 40, 50, 51, 55, 59, 63, 65, 66, 68, 69, 75, 76, 77, 78, 83, 106, 131, 132, 143, 171, 175, 176, 177]
+    solid = ~np.isin(coarse, non_solid)
+
+    start_cx, start_cz = start[0] // factor, start[1] // factor
+    finish_cx, finish_cz = finish[0] // factor, finish[1] // factor
+    occupied_at_start = np.flatnonzero(solid[:, start_cz, start_cx])
+    if len(occupied_at_start) == 0:
+        raise ValueError("start coordinate has no solid surface")
+    start_top = start_y // factor if start_y is not None else int(occupied_at_start[-1])
+
+    transform = {
+        "scale": scale,
+        "x": (start_cx + 0.5 - cw / 2) * scale,
+        "y": -(start_top + 1) * scale,
+        "z": (start_cz + 0.5) * scale,
+        "yaw": 180,
+    }
+    finish_z = transform["z"] - (finish_cz + 0.5) * scale
+    death_y = -18.0
+
+    # Greedily merge solid voxels into 3D boxes. This preserves caves, foliage,
+    # overheads, and walls instead of turning every top pixel into a solid pillar.
+    visited = np.zeros_like(solid, dtype=bool)
+    cuboids: list[list[int]] = []
+    for y_value, z_value, x_value in np.argwhere(solid):
+        y, z, x = int(y_value), int(z_value), int(x_value)
+        if visited[y, z, x]:
+            continue
+        x1 = x + 1
+        while x1 < cw and solid[y, z, x1] and not visited[y, z, x1]:
+            x1 += 1
+        z1 = z + 1
+        while z1 < cl and np.all(solid[y, z1, x:x1] & ~visited[y, z1, x:x1]):
+            z1 += 1
+        y1 = y + 1
+        while y1 < ch and np.all(solid[y1, z:z1, x:x1] & ~visited[y1, z:z1, x:x1]):
+            y1 += 1
+        visited[y:y1, z:z1, x:x1] = True
+        cuboids.append([x, y, z, x1 - x, y1 - y, z1 - z, int(coarse[y, z, x])])
+
+    def kind(block_id: int) -> str:
+        if block_id in {87, 88, 112, 173}:
+            return "basalt"
+        if block_id in {41, 42, 57, 133, 138}:
+            return "finish"
+        if block_id in {51, 89, 124}:
+            return "ember"
+        return "sandstone"
+
+    blocks = []
+    for index, (x, y, z, width, height, depth, block_id) in enumerate(cuboids):
+        center_x = transform["x"] - (x + width / 2 - cw / 2) * scale
+        center_z = transform["z"] - (z + depth / 2) * scale
+        center_y = transform["y"] + (y + height / 2) * scale
+        blocks.append({
+            "id": f"salto-{index}",
+            "x": round(center_x, 4),
+            "y": round(center_y, 4),
+            "z": round(center_z, 4),
+            "sx": round(width * scale, 4),
+            "sy": round(height * scale, 4),
+            "sz": round(depth * scale, 4),
+            "kind": kind(block_id),
+            "breakable": not (center_z < 8 or center_z > finish_z - 8),
+            "visible": False,
+        })
+
+    payload = {
+        "model": "/models/salto.glb",
+        "modelTransform": transform,
+        "finishZ": round(finish_z - 2, 4),
+        "deathY": death_y,
+        "spawn": {"x": 0, "y": 0.05, "z": 0},
+        "blocks": blocks,
+    }
+    path.write_text(json.dumps(payload, separators=(",", ":")) + "\n")
+    print(f"Salto collision: {len(cuboids):,} merged cuboids -> {path}")
 
 
 def main() -> None:
@@ -133,11 +231,30 @@ def main() -> None:
     parser.add_argument("schematic", type=Path)
     parser.add_argument("output", type=Path)
     parser.add_argument("--factor", type=int, default=3)
+    parser.add_argument("--asset-name")
+    parser.add_argument("--course-output", type=Path)
+    parser.add_argument("--scale", type=float, default=1.0)
+    parser.add_argument("--start", nargs=2, type=int, metavar=("X", "Z"))
+    parser.add_argument("--start-y", type=int, help="solid block Y under the spawn point")
+    parser.add_argument("--finish", nargs=2, type=int, metavar=("X", "Z"))
     args = parser.parse_args()
     args.output.mkdir(parents=True, exist_ok=True)
     build_player(args.output / "runner.glb")
     build_dragon(args.output / "cinder-wyrm.glb")
-    build_schematic(args.schematic, args.output / "grumble-volcano.glb", args.factor)
+    asset_name = args.asset_name or args.schematic.stem.lower().replace(" ", "-")
+    coarse = build_schematic(args.schematic, args.output / f"{asset_name}.glb", args.factor)
+    if args.course_output:
+        if not args.start or not args.finish:
+            parser.error("--course-output requires --start X Z and --finish X Z")
+        build_collision_course(
+            coarse,
+            args.course_output,
+            args.factor,
+            args.scale,
+            tuple(args.start),
+            tuple(args.finish),
+            args.start_y,
+        )
 
 
 if __name__ == "__main__":

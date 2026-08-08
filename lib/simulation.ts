@@ -1,4 +1,5 @@
 import { COURSE, type CourseBlock } from "./course";
+import { createCollisionIndex } from "./collision";
 
 export type Vec3 = { x: number; y: number; z: number };
 export type InputState = {
@@ -49,6 +50,7 @@ export function createRunner(): RunnerState {
 
 const radius = 0.34;
 const height = 1.72;
+const collisionIndex = createCollisionIndex(COURSE.blocks);
 
 function overlap(position: Vec3, b: CourseBlock) {
   return position.x + radius > b.x - b.sx / 2 &&
@@ -60,7 +62,7 @@ function overlap(position: Vec3, b: CourseBlock) {
 }
 
 function blocked(position: Vec3, destroyed: ReadonlySet<string>) {
-  return COURSE.blocks.some((b) => !destroyed.has(b.id) && overlap(position, b));
+  return collisionIndex.nearby(position).some((b) => !destroyed.has(b.id) && overlap(position, b));
 }
 
 export function simulateRunner(
@@ -113,7 +115,7 @@ export function simulateRunner(
     runner.position.y = nextY.y;
   } else if (runner.velocity.y <= 0) {
     let bestTop = -Infinity;
-    for (const b of COURSE.blocks) {
+    for (const b of collisionIndex.nearby(runner.position)) {
       if (destroyed.has(b.id)) continue;
       const top = b.y + b.sy / 2;
       const horizontallyInside = runner.position.x + radius > b.x - b.sx / 2 &&
@@ -135,7 +137,10 @@ export function simulateRunner(
   while (runner.checkpoint + 1 < checkpoints.length && runner.position.z >= checkpoints[runner.checkpoint + 1].z) {
     runner.checkpoint += 1;
   }
-  if (runner.position.z >= COURSE.finishZ && runner.position.y > -1) runner.finished = true;
+  const finish = COURSE.finish;
+  if (runner.position.z >= COURSE.finishZ &&
+    Math.abs(runner.position.x - finish.x) <= finish.radius &&
+    Math.abs(runner.position.y - finish.y) <= finish.radius) runner.finished = true;
   if (runner.position.y < COURSE.deathY) runner.alive = false;
 }
 
@@ -156,7 +161,7 @@ export function destroyNearDragon(destroyed: Set<string>, dragonZ: number) {
 
 export function respawnAtCheckpoint(runner: RunnerState) {
   const checkpoint = COURSE.checkpoints[Math.max(0, runner.checkpoint - 1)];
-  runner.position = { x: 0, y: 7, z: checkpoint.z };
+  runner.position = { x: checkpoint.x, y: checkpoint.y + 2, z: checkpoint.z };
   runner.velocity = { x: 0, y: 0, z: 0 };
   runner.alive = true;
 }

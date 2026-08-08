@@ -1,17 +1,19 @@
 # Prototype asset pipeline
 
 The source maps in `../schematics` are gzip-compressed legacy MCEdit
-`.schematic` files (numeric pre-flattening block IDs). `GrumbleVolcano` is the
-prototype environment because its route, floating landforms, and lava palette
-fit Dragon Escape.
+`.schematic` files (numeric pre-flattening block IDs). `SaltoFixed` is the
+owned prototype environment: it removes stray entities, includes several map
+fixes, and has explicit start-platform and finish-beacon landmarks.
 
 ## Repeatable browser pipeline
 
 1. Convert the schematic to a surface mesh. For the prototype, run
    `tools/build_prototype_assets.py` with `nbtlib`, `numpy`, and `trimesh`.
-   It downsamples the scenery, removes internal voxel faces, and emits GLB.
-2. Treat the GLB as visual scenery. Keep an authored, sparse collision course
-   until a later converter emits navigation/collision metadata separately.
+   For Salto it keeps source-block resolution, removes internal voxel faces,
+   and emits GLB.
+2. Compile solid voxels separately into greedy 3D collision cuboids and index
+   them spatially at runtime. This preserves caves and overhangs; a top-down
+   heightfield would incorrectly turn tree canopies into solid pillars.
 3. Author characters and the dragon in Blender or Blockbench, export a single
    binary glTF (`.glb`), and preserve meaningful node names for animated parts.
 4. Load GLB files through PlayCanvas container assets and instantiate render

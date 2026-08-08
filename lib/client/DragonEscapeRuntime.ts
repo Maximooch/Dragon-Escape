@@ -26,6 +26,7 @@ export type GameView = {
   online: boolean;
   eliminated: boolean;
   pointerLocked: boolean;
+  audioState: "idle" | "ready" | "blocked" | "muted";
 };
 
 type Rival = { id: string; name: string; speed: number; offset: number; entity: pc.Entity; finished: boolean };
@@ -67,6 +68,8 @@ export class DragonEscapeRuntime {
   private name = "Runner";
   private muted = false;
   private audio: AudioContext | null = null;
+  private audioState: GameView["audioState"] = "idle";
+  private media = new Map<"check" | "roar" | "wing", HTMLAudioElement>();
   private lastCountdownBeat = 0;
   private nextDragonGrowl = 2;
   private nextWingBeat = 0;
@@ -102,6 +105,15 @@ export class DragonEscapeRuntime {
     window.removeEventListener("keyup", this.keyUp);
     document.removeEventListener("mousemove", this.mouseMove);
     document.removeEventListener("pointerlockchange", this.pointerLockChange);
+    document.removeEventListener("visibilitychange", this.visibilityChange);
+    for (const element of this.media.values()) {
+      element.pause();
+      element.removeAttribute("src");
+      element.load();
+    }
+    this.media.clear();
+    void this.audio?.close();
+    this.audio = null;
     this.room?.leave();
     this.app?.destroy();
     this.app = null;
@@ -115,21 +127,82 @@ export class DragonEscapeRuntime {
 
   setMuted(muted: boolean) {
     this.muted = muted;
-    if (!muted) {
-      this.unlockAudio();
-      this.tone(440, 0.12, 0.045);
+    if (muted) {
+      for (const element of this.media.values()) element.pause();
+      this.setAudioState("muted");
+    } else {
+      this.testSound();
     }
   }
 
-  private unlockAudio() {
+  private unlockWebAudio() {
     if (this.muted) return null;
-    this.audio = unlockAudioContext(this.audio, () => new AudioContext());
+    this.audio = unlockAudioContext(
+      this.audio,
+      () => new AudioContext(),
+      () => this.setAudioState("blocked"),
+    );
+    this.audio.onstatechange = () => {
+      if (this.muted) this.setAudioState("muted");
+      else if (this.audio?.state === "running") this.setAudioState("ready");
+      else if (this.audio?.state === "suspended") this.setAudioState("blocked");
+    };
     return this.audio;
+  }
+
+  private setAudioState(state: GameView["audioState"]) {
+    if (this.audioState === state) return;
+    this.audioState = state;
+    this.emitView(true);
+  }
+
+  private mediaElement(kind: "check" | "roar" | "wing") {
+    const existing = this.media.get(kind);
+    if (existing) return existing;
+    const urls = {
+      check: "/audio/audio-check.wav",
+      roar: "/audio/dragon-roar.wav",
+      wing: "/audio/wing-beat.wav",
+    };
+    const element = new Audio(urls[kind]);
+    element.preload = "auto";
+    this.media.set(kind, element);
+    return element;
+  }
+
+  private playMedia(kind: "check" | "roar" | "wing", volume: number) {
+    if (this.muted) return Promise.resolve();
+    const element = this.mediaElement(kind);
+    element.pause();
+    element.currentTime = 0;
+    element.volume = Math.max(0, Math.min(1, volume));
+    const playback = element.play();
+    return playback.then(() => this.setAudioState("ready")).catch(() => {
+      this.setAudioState("blocked");
+      throw new Error("audio playback blocked");
+    });
+  }
+
+  testSound() {
+    if (this.muted) return;
+    this.unlockWebAudio();
+    void this.playMedia("check", 0.72).catch(() => undefined);
+
+    // Authorize the reusable creature elements inside the same user gesture.
+    for (const kind of ["roar", "wing"] as const) {
+      const element = this.mediaElement(kind);
+      element.muted = true;
+      void element.play().then(() => {
+        element.pause();
+        element.currentTime = 0;
+        element.muted = false;
+      }).catch(() => { element.muted = false; });
+    }
   }
 
   private tone(frequency: number, duration = 0.08, volume = 0.025) {
     if (this.muted) return;
-    const audio = this.unlockAudio();
+    const audio = this.unlockWebAudio();
     if (!audio) return;
     const oscillator = audio.createOscillator();
     const gain = audio.createGain();
@@ -144,60 +217,16 @@ export class DragonEscapeRuntime {
 
   private dragonGrowl(distance: number) {
     if (this.muted) return;
-    this.audio ??= new AudioContext();
-    void this.audio.resume();
-    const now = this.audio.currentTime;
     const proximity = Math.max(0.15, Math.min(1, 1 - distance / 85));
-    const master = this.audio.createGain();
-    const filter = this.audio.createBiquadFilter();
-    master.gain.setValueAtTime(0.0001, now);
-    master.gain.exponentialRampToValueAtTime(0.045 * proximity, now + 0.08);
-    master.gain.exponentialRampToValueAtTime(0.0001, now + 1.15);
-    filter.type = "lowpass";
-    filter.frequency.setValueAtTime(420, now);
-    filter.frequency.exponentialRampToValueAtTime(95, now + 1.1);
-    filter.Q.value = 5;
-    filter.connect(master).connect(this.audio.destination);
-
-    for (const [frequency, detune] of [[58, -13], [73, 9]] as const) {
-      const oscillator = this.audio.createOscillator();
-      oscillator.type = "sawtooth";
-      oscillator.frequency.setValueAtTime(frequency, now);
-      oscillator.frequency.exponentialRampToValueAtTime(frequency * 0.58, now + 1.1);
-      oscillator.detune.value = detune;
-      oscillator.connect(filter);
-      oscillator.start(now);
-      oscillator.stop(now + 1.18);
-    }
-
-    const sampleRate = this.audio.sampleRate;
-    const buffer = this.audio.createBuffer(1, Math.floor(sampleRate * 1.1), sampleRate);
-    const data = buffer.getChannelData(0);
-    for (let i = 0; i < data.length; i++) data[i] = (Math.random() * 2 - 1) * (1 - i / data.length);
-    const noise = this.audio.createBufferSource();
-    noise.buffer = buffer;
-    noise.playbackRate.value = 0.55;
-    noise.connect(filter);
-    noise.start(now);
+    void this.playMedia("roar", 0.28 + proximity * 0.62).catch(() => {
+      this.tone(150, 0.8, 0.12 * proximity);
+    });
   }
 
   private wingBeat(distance: number) {
     if (this.muted || distance > 48) return;
-    this.audio ??= new AudioContext();
-    const now = this.audio.currentTime;
-    const buffer = this.audio.createBuffer(1, Math.floor(this.audio.sampleRate * 0.32), this.audio.sampleRate);
-    const data = buffer.getChannelData(0);
-    for (let i = 0; i < data.length; i++) data[i] = (Math.random() * 2 - 1) * Math.sin(Math.PI * i / data.length);
-    const source = this.audio.createBufferSource();
-    const filter = this.audio.createBiquadFilter();
-    const gain = this.audio.createGain();
-    filter.type = "lowpass";
-    filter.frequency.value = 170;
-    gain.gain.setValueAtTime(0.0001, now);
-    gain.gain.linearRampToValueAtTime(0.022 * (1 - distance / 60), now + 0.08);
-    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.31);
-    source.connect(filter).connect(gain).connect(this.audio.destination);
-    source.start(now);
+    const proximity = Math.max(0.1, 1 - distance / 60);
+    void this.playMedia("wing", 0.12 + proximity * 0.42).catch(() => undefined);
   }
 
   private updateDragonAudio(dragonZ: number) {
@@ -215,8 +244,7 @@ export class DragonEscapeRuntime {
 
   join(name: string) {
     this.name = name;
-    this.unlockAudio();
-    this.tone(180, 0.12, 0.035);
+    this.testSound();
     // Safari requires pointer lock to stay inside the original button gesture.
     beginPointerLockedJoin(
       () => this.resetRace(),
@@ -265,9 +293,13 @@ export class DragonEscapeRuntime {
     window.addEventListener("keyup", this.keyUp);
     document.addEventListener("mousemove", this.mouseMove);
     document.addEventListener("pointerlockchange", this.pointerLockChange);
+    document.addEventListener("visibilitychange", this.visibilityChange);
   }
 
   private pointerLockChange = () => this.emitView(true);
+  private visibilityChange = () => {
+    if (document.visibilityState === "visible" && !this.muted) this.unlockWebAudio();
+  };
 
   private keyDown = (event: KeyboardEvent) => {
     this.keys.add(event.code);
@@ -300,14 +332,15 @@ export class DragonEscapeRuntime {
       finish: this.material(new pc.Color(0.17, 0.36, 0.38), new pc.Color(0.03, 0.8, 0.68)),
     };
     for (const b of COURSE.blocks) {
+      if (b.visible === false) continue;
       const entity = this.box(b, materials[b.kind]);
       this.blockEntities.set(b.id, entity);
     }
 
     const lava = new pc.Entity("CinderSea");
     lava.addComponent("render", { type: "box", material: this.material(new pc.Color(0.18, 0.015, 0.01), new pc.Color(1, 0.055, 0.005)) });
-    lava.setLocalScale(38, 0.35, 180);
-    lava.setPosition(0, -5.5, 73);
+    lava.setLocalScale(180, 0.35, 330);
+    lava.setPosition(40, -18.5, 110);
     app.root.addChild(lava);
 
     for (let i = 0; i < 48; i++) {
@@ -315,7 +348,7 @@ export class DragonEscapeRuntime {
       ember.addComponent("render", { type: "sphere", material: materials.ember });
       const size = 0.025 + (i % 5) * 0.018;
       ember.setLocalScale(size, size, size);
-      ember.setPosition(((i * 17) % 21) - 10, 1 + ((i * 7) % 9), (i * 23) % 148);
+      ember.setPosition(((i * 17) % 145) - 25, 2 + ((i * 7) % 45), (i * 23) % 235);
       app.root.addChild(ember);
     }
 
@@ -342,11 +375,13 @@ export class DragonEscapeRuntime {
   }
 
   private loadPrototypeModels() {
-    this.loadContainer("/models/grumble-volcano.glb", (resource) => {
+    this.loadContainer(COURSE.model, (resource) => {
       const environment = resource.instantiateRenderEntity({ castShadows: false, receiveShadows: true });
-      environment.name = "Grumble Volcano schematic scenery";
-      environment.setLocalScale(1.12, 1.12, 1.12);
-      environment.setPosition(0, -18, 0);
+      environment.name = `${COURSE.name} schematic environment`;
+      const transform = COURSE.modelTransform;
+      environment.setLocalScale(transform.scale, transform.scale, transform.scale);
+      environment.setEulerAngles(0, transform.yaw, 0);
+      environment.setPosition(transform.x, transform.y, transform.z);
       this.app?.root.addChild(environment);
     });
 
@@ -451,7 +486,7 @@ export class DragonEscapeRuntime {
       const beat = Math.ceil(this.countdown);
       if (beat > 0 && beat <= 3 && beat !== this.lastCountdownBeat) {
         this.lastCountdownBeat = beat;
-        this.tone(beat === 1 ? 520 : 360, 0.09, 0.03);
+        this.tone(beat === 1 ? 720 : 480, 0.11, 0.095);
       }
       if (this.countdown <= 0) { this.phase = "racing"; this.elapsed = 0; }
       return;
@@ -505,7 +540,12 @@ export class DragonEscapeRuntime {
   }
 
   private updateDragon(z: number, elapsed: number) {
-    this.dragon.setPosition(Math.sin(elapsed * 0.65) * 1.4, 4.3 + Math.sin(elapsed * 1.7) * 0.45, z);
+    const route = this.botPath(Math.max(0, z));
+    this.dragon.setPosition(
+      route.x + Math.sin(elapsed * 0.65) * 1.4,
+      route.y + 4.3 + Math.sin(elapsed * 1.7) * 0.45,
+      z,
+    );
     const left = this.dragon.findByName("left-wing");
     const right = this.dragon.findByName("right-wing");
     const flap = Math.sin(elapsed * 5.5) * 20;
@@ -524,17 +564,19 @@ export class DragonEscapeRuntime {
   }
 
   private botPath(z: number): Vec3 {
-    const path = COURSE.blocks.filter((b) => b.x > -7 && b.x < 7 && b.z > 8).sort((a, b) => a.z - b.z);
-    let previous = { x: 0, y: 0, z: 0 };
-    for (const block of path) {
-      const next = { x: block.x, y: block.y + block.sy / 2, z: block.z };
+    let previous = COURSE.botPath[0];
+    for (const next of COURSE.botPath.slice(1)) {
       if (z <= next.z) {
         const t = Math.max(0, (z - previous.z) / Math.max(0.1, next.z - previous.z));
-        return { x: previous.x + (next.x - previous.x) * t, y: previous.y + (next.y - previous.y) * t + Math.sin(t * Math.PI) * 1.8, z };
+        return {
+          x: previous.x + (next.x - previous.x) * t,
+          y: previous.y + (next.y - previous.y) * t + Math.sin(t * Math.PI) * 1.4,
+          z,
+        };
       }
       previous = next;
     }
-    return { x: 0, y: 2, z };
+    return { ...COURSE.botPath.at(-1)!, z };
   }
 
   private syncDestroyed() {
@@ -581,6 +623,7 @@ export class DragonEscapeRuntime {
       online: this.online,
       eliminated: !this.runner.alive,
       pointerLocked: document.pointerLockElement === this.canvas,
+      audioState: this.audioState,
     });
   }
 }
