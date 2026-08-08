@@ -251,7 +251,7 @@ export function GameClient() {
             onPointerCancel={endMove}
             onLostPointerCapture={endMove}
           >
-            <i style={{ transform: `translate(calc(-50% + ${stick.strafe * 38}px), calc(-50% + ${-stick.forward * 38}px))` }} />
+            <i style={{ transform: `translate(calc(-50% + ${stick.strafe * 30}px), calc(-50% + ${-stick.forward * 30}px))` }} />
           </div>
           <div className="touch-actions">
             <button

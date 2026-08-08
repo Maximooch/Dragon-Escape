@@ -127,21 +127,46 @@ kbd { display: inline-flex; min-width: 46px; justify-content: center; margin-rig
   .footer-note { display: none; }
 }
 
-@media (max-height: 540px) and (pointer: coarse) {
-  .touch-mode .menu-panel { top: calc(62px + env(safe-area-inset-top)); width: min(420px, calc(100vw - 24px)); max-height: calc(100dvh - 70px - env(safe-area-inset-top)); padding: 14px 18px; }
-  .touch-mode .menu-panel h1 { font-size: 42px; }
-  .touch-mode .eyebrow { margin-bottom: 10px; }
-  .touch-mode .intro { margin: 10px 0; font-size: 12px; }
-  .touch-mode .name-field { margin-bottom: 8px; }
-  .touch-mode .name-field input { padding: 9px 11px; }
-  .touch-mode .join-button { min-height: 46px; }
-  .touch-mode .audio-test { min-height: 32px; }
-  .touch-mode .control-grid, .touch-mode .tip { display: none; }
-  .touch-move-pad { width: 104px; height: 104px; bottom: max(14px, env(safe-area-inset-bottom)); }
-  .touch-actions { bottom: max(12px, env(safe-area-inset-bottom)); transform: scale(.9); transform-origin: bottom right; }
+@media (orientation: landscape) and (max-height: 600px) {
+  .topbar { height: calc(48px + env(safe-area-inset-top)); gap: 12px; padding: env(safe-area-inset-top) max(14px, env(safe-area-inset-right)) 0 max(14px, env(safe-area-inset-left)); }
+  .wordmark { font-size: 16px; }
+  .connection { display: none; }
+  .sound-button { min-height: 40px; font-size: 8px; }
+  .menu-panel { left: max(12px, env(safe-area-inset-left)); top: calc(56px + env(safe-area-inset-top)); width: min(360px, calc(100vw - 24px)); max-height: calc(100dvh - 64px - env(safe-area-inset-top) - env(safe-area-inset-bottom)); overflow-y: auto; transform: none; padding: 12px 15px; }
+  .menu-panel h1 { font-size: 38px; }
+  .eyebrow { margin-bottom: 10px; }
+  .intro { margin: 8px 0; font-size: 11px; line-height: 1.3; }
+  .name-field { margin-bottom: 8px; }
+  .name-field input { padding: 9px 11px; }
+  .join-button { min-height: 42px; }
+  .audio-test { min-height: 28px; }
+  .control-grid, .tip { display: none; }
+
+  .race-card { left: max(12px, env(safe-area-inset-left)); top: calc(56px + env(safe-area-inset-top)); width: 210px; padding: 9px 11px; }
+  .race-card p { margin-bottom: 4px; font-size: 6px; }
+  .race-card > strong { font-size: 14px; }
+  .progress-track { margin: 7px 0 8px; }
+  .race-stats { gap: 5px; }
+  .race-stats b { font-size: 12px; }
+  .race-stats small { font-size: 5px; }
+  .center-banner { top: 24%; font-size: clamp(42px, 12vh, 64px); }
+  .center-banner.danger { font-size: clamp(30px, 9vh, 48px); }
+  .footer-note { display: none; }
+
+  .touch-mode .touch-look-zone { top: calc(48px + env(safe-area-inset-top)); left: 34%; }
+  .touch-mode .touch-move-pad { left: max(14px, env(safe-area-inset-left)); bottom: max(12px, env(safe-area-inset-bottom)); width: 92px; height: 92px; }
+  .touch-mode .touch-move-pad i { width: 42px; height: 42px; }
+  .touch-mode .touch-actions { right: max(14px, env(safe-area-inset-right)); bottom: max(10px, env(safe-area-inset-bottom)); grid-template-columns: 58px 64px; grid-template-rows: 46px 64px; gap: 8px; }
+  .touch-mode .touch-action b { font-size: 8px; }
+  .touch-mode .touch-action.jump b { font-size: 10px; }
+  .touch-mode .touch-action small { font-size: 6px; }
+  .results-panel { top: calc(56px + env(safe-area-inset-top)); max-height: calc(100dvh - 64px - env(safe-area-inset-top) - env(safe-area-inset-bottom)); overflow-y: auto; transform: translateX(-50%); padding: 16px 20px; }
+  .results-panel h2 { font-size: 36px; }
+  .result-line { margin: 12px 0; padding: 10px 0; }
+  .touch-mode .rotate-hint { display: none; }
 }
 
 @media (orientation: portrait) and (pointer: coarse) {
-  .rotate-hint { display: block; }
+  .rotate-hint { display: block; top: calc(238px + env(safe-area-inset-top)); }
   .touch-look-zone span { top: 35%; }
 }

@@ -29,10 +29,35 @@ The main gaps are equally concrete:
 - There is no map manifest/compiler, animation system, settings screen, persistence, telemetry, compatibility matrix, or content-rights register.
 - Release maps must be original. Imported Minecraft schematics are reference/test material unless ownership or a shipping license is recorded.
 
+## Mobile roadmap
+
+Mobile is now a supported browser surface for the MVP, not a later native-port concern. The immediate goal is a complete public race on current iOS Safari/Brave and Android Chrome without desktop controls, clipped UI, or accidental browser gestures.
+
+**Current foundation**
+
+- Coarse-pointer detection enables a virtual movement stick, drag-to-look region, held jump, leap, and toggle sprint.
+- HUD and controls respect safe-area insets, recommend landscape, and use a reduced rendering budget.
+- Low-height landscape layouts compact the header, race card, countdown, menu, results, and thumb controls independently of screen width.
+
+**Near-term hardening (v0.2–v0.3)**
+
+- Test a physical-device matrix covering iOS Safari, iOS embedded/alternative browsers, and Android Chrome at small and large phone sizes.
+- Preserve input and camera state through orientation changes, address-bar expansion, app switching, and audio-context suspension.
+- Add settings for look sensitivity, control handedness, HUD scale/opacity, sprint behavior, haptics, and reduced camera motion.
+- Add installable PWA metadata and a user-initiated fullscreen path where the browser permits it; never require fullscreen to play.
+- Keep touch targets at least 44 CSS px, reserve non-overlapping thumb zones, and prevent system back/home gestures from becoming game input where web APIs allow.
+
+**Performance and release gates (v0.4+)**
+
+- Define mobile GPU tiers with adaptive pixel ratio, shadow distance, particles, model LOD, texture compression, and streamed map chunks.
+- Track first-playable time, frame-time percentiles, memory pressure, thermal throttling, battery drain, audio resumes, and orientation failures by device tier.
+- Require a full race/rematch soak without control loss, clipped HUD, page zoom, or audio loss on the minimum supported iPhone and Android device.
+- Add controller support only after the touch layout and accessibility settings are stable; evaluate a native wrapper only if browser retention justifies it.
+
 ## Product guardrails
 
 1. **Fun before breadth.** Do not add progression or extra modes until repeat playtests say movement, route readability, and dragon pressure are fun.
-2. **Browser first.** Desktop Chrome, Safari, Firefox, and Edge are the primary target. Native packaging and touch controls can follow the web release.
+2. **Browser first.** Current desktop and mobile browsers are the primary target. Native packaging may follow the web release, but touch controls and mobile performance are release requirements.
 3. **Data, visuals, and collision stay separate.** A render GLB is not authoritative collision. Every map compiles to a small gameplay manifest plus optimized visual chunks.
 4. **Public games stay frictionless.** Guest play and one-click rematches come before accounts. Accounts may enhance identity but must not gate the core loop.
 5. **One fair simulation.** The server owns race outcomes. The client predicts movement and presents destruction but cannot decide position, cooldowns, or finish state.
