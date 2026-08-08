@@ -12,6 +12,7 @@ import {
   type Vec3,
 } from "../simulation";
 import { beginPointerLockedJoin } from "./input";
+import { unlockAudioContext } from "./audio";
 
 export type GameView = {
   phase: "menu" | "countdown" | "racing" | "results";
@@ -112,20 +113,33 @@ export class DragonEscapeRuntime {
     if (request && "catch" in request) request.catch(() => undefined);
   }
 
-  setMuted(muted: boolean) { this.muted = muted; }
+  setMuted(muted: boolean) {
+    this.muted = muted;
+    if (!muted) {
+      this.unlockAudio();
+      this.tone(440, 0.12, 0.045);
+    }
+  }
+
+  private unlockAudio() {
+    if (this.muted) return null;
+    this.audio = unlockAudioContext(this.audio, () => new AudioContext());
+    return this.audio;
+  }
 
   private tone(frequency: number, duration = 0.08, volume = 0.025) {
     if (this.muted) return;
-    this.audio ??= new AudioContext();
-    const oscillator = this.audio.createOscillator();
-    const gain = this.audio.createGain();
+    const audio = this.unlockAudio();
+    if (!audio) return;
+    const oscillator = audio.createOscillator();
+    const gain = audio.createGain();
     oscillator.type = "sawtooth";
     oscillator.frequency.value = frequency;
-    gain.gain.setValueAtTime(volume, this.audio.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.0001, this.audio.currentTime + duration);
-    oscillator.connect(gain).connect(this.audio.destination);
+    gain.gain.setValueAtTime(volume, audio.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.0001, audio.currentTime + duration);
+    oscillator.connect(gain).connect(audio.destination);
     oscillator.start();
-    oscillator.stop(this.audio.currentTime + duration);
+    oscillator.stop(audio.currentTime + duration);
   }
 
   private dragonGrowl(distance: number) {
@@ -201,6 +215,7 @@ export class DragonEscapeRuntime {
 
   join(name: string) {
     this.name = name;
+    this.unlockAudio();
     this.tone(180, 0.12, 0.035);
     // Safari requires pointer lock to stay inside the original button gesture.
     beginPointerLockedJoin(
@@ -313,7 +328,45 @@ export class DragonEscapeRuntime {
       entity: this.createRival(index),
       finished: false,
     }));
+    this.loadPrototypeModels();
     this.camera.setPosition(0, 1.62, -4);
+  }
+
+  private loadContainer(url: string, onLoad: (resource: pc.ContainerResource) => void) {
+    const app = this.app;
+    if (!app) return;
+    app.assets.loadFromUrl(url, "container", (error, asset) => {
+      if (error || !asset?.resource || this.app !== app) return;
+      onLoad(asset.resource as pc.ContainerResource);
+    });
+  }
+
+  private loadPrototypeModels() {
+    this.loadContainer("/models/grumble-volcano.glb", (resource) => {
+      const environment = resource.instantiateRenderEntity({ castShadows: false, receiveShadows: true });
+      environment.name = "Grumble Volcano schematic scenery";
+      environment.setLocalScale(1.12, 1.12, 1.12);
+      environment.setPosition(0, -18, 0);
+      this.app?.root.addChild(environment);
+    });
+
+    this.loadContainer("/models/cinder-wyrm.glb", (resource) => {
+      const model = resource.instantiateRenderEntity({ castShadows: true });
+      model.name = "The Cinder Wyrm";
+      this.dragon.destroy();
+      this.dragon = model;
+      this.app?.root.addChild(model);
+    });
+
+    this.loadContainer("/models/runner.glb", (resource) => {
+      this.rivals.forEach((rival) => {
+        const model = resource.instantiateRenderEntity({ castShadows: true });
+        model.setLocalPosition(0, -0.66, 0);
+        model.setLocalEulerAngles(0, 180, 0);
+        rival.entity.removeComponent("render");
+        rival.entity.addChild(model);
+      });
+    });
   }
 
   private material(diffuse: pc.Color, emissive: pc.Color) {

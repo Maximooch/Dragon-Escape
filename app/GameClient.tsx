@@ -55,9 +55,9 @@ export function GameClient() {
 
       {view.phase === "menu" && (
         <section className="menu-panel">
-          <p className="eyebrow">PUBLIC PLAYTEST // BUILD 001</p>
+          <p className="eyebrow">PUBLIC PLAYTEST // BUILD 002</p>
           <h1>OUTRUN<br /><em>THE END.</em></h1>
-          <p className="intro">The Ashen Causeway is collapsing. Reach sanctuary before the dragon turns the route to cinders.</p>
+          <p className="intro">Grumble Volcano is collapsing. Reach sanctuary before the dragon turns the route to cinders.</p>
           <label className="name-field">
             <span>RUNNER NAME</span>
             <input value={name} maxLength={18} onChange={(event) => setName(event.target.value)} onKeyDown={(event) => event.key === "Enter" && join()} />
@@ -77,7 +77,7 @@ export function GameClient() {
         <>
           <div className="crosshair" aria-hidden="true"><i /><i /></div>
           <aside className="race-card">
-            <p>ASHEN CAUSEWAY</p>
+            <p>GRUMBLE VOLCANO // TEST MAP</p>
             <strong>{view.checkpoint}</strong>
             <div className="progress-track"><i style={{ width: `${view.progress}%` }} /></div>
             <div className="race-stats">
