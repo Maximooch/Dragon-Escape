@@ -13,6 +13,7 @@ import {
 } from "../simulation";
 import { beginPointerLockedJoin } from "./input";
 import { unlockAudioContext } from "./audio";
+import { configureSceneFog } from "./rendering";
 import { movementFromAxes, touchLookRotation, type TouchAxes } from "./touch";
 
 export type GameView = {
@@ -371,9 +372,7 @@ export class DragonEscapeRuntime {
     camera.camera!.gammaCorrection = pc.GAMMA_SRGB;
     app.scene.exposure = 1.12;
     app.scene.ambientLight = new pc.Color(0.34, 0.31, 0.43);
-    app.scene.fog = pc.FOG_EXP2;
-    app.scene.fogColor = skyColor;
-    app.scene.fogDensity = 0.0018;
+    configureSceneFog(app.scene, pc.FOG_EXP2, skyColor, 0.0018);
 
     const key = new pc.Entity("Warm key");
     key.addComponent("light", {
