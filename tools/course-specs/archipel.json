@@ -1,0 +1,16 @@
+{
+  "name": "Archipel",
+  "description": "A long island chain of giant trees, suspended ruins, and narrow sky bridges.",
+  "difficulty": "ENDURANCE",
+  "music": "/music/isles-in-pursuit.mid",
+  "route": [
+    { "x": 35, "y": 21, "z": 105, "label": "Westward Dock" },
+    { "x": 70, "y": 14, "z": 71, "label": "Rootbound Isle" },
+    { "x": 93, "y": 14, "z": 124, "label": "Fallen Canopy" },
+    { "x": 150, "y": 44, "z": 52, "label": "High Banners" },
+    { "x": 188, "y": 18, "z": 101, "label": "Central Keep" },
+    { "x": 225, "y": 6, "z": 91, "label": "Low Ruins" },
+    { "x": 265, "y": 24, "z": 72, "label": "Last Chain" },
+    { "x": 295, "y": 20, "z": 49, "label": "Eastern Beacon" }
+  ]
+}
