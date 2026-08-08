@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { COURSE, progressAt } from "../lib/course";
+import { COURSE, COURSES, courseProgressAt, pathPointAt, progressAt } from "../lib/course";
 import { createRunner, destroyNearDragon, dragonPosition, movementBasis, simulateRunner } from "../lib/simulation";
 
 test("movement basis matches the first-person camera handedness", () => {
@@ -12,11 +12,14 @@ test("movement basis matches the first-person camera handedness", () => {
 });
 
 test("course has a complete authored race path", () => {
-  assert.equal(COURSE.checkpoints.at(0)?.z, 0);
-  assert.equal(COURSE.checkpoints.at(-1)?.z, COURSE.finishZ);
-  assert.ok(COURSE.blocks.length >= 30);
-  assert.ok(COURSE.blocks.some((block) => block.breakable));
-  assert.ok(COURSE.blocks.some((block) => !block.breakable));
+  for (const course of COURSES) {
+    assert.equal(course.checkpoints.at(0)?.progress, 0, `${course.name} starts at zero`);
+    assert.equal(course.checkpoints.at(-1)?.progress, course.finishZ, `${course.name} reaches its route length`);
+    assert.ok(course.blocks.length >= 30);
+    assert.ok(course.blocks.some((block) => block.breakable));
+    assert.ok(course.blocks.some((block) => !block.breakable));
+    assert.deepEqual(pathPointAt(course, course.finishZ), course.botPath.at(-1));
+  }
 });
 
 test("progress is clamped and reaches 100 at sanctuary", () => {
@@ -28,8 +31,12 @@ test("progress is clamped and reaches 100 at sanctuary", () => {
 test("dragon accelerates and destroys only authored breakable terrain", () => {
   assert.ok(dragonPosition(30) - dragonPosition(20) > dragonPosition(20) - dragonPosition(10));
   const destroyed = new Set<string>();
-  const target = COURSE.blocks.find((block) => block.breakable)!;
-  destroyNearDragon(destroyed, target.z);
+  const target = COURSE.blocks.find((block) => {
+    if (!block.breakable) return false;
+    const point = pathPointAt(COURSE, courseProgressAt(block, COURSE));
+    return Math.hypot(block.x - point.x, block.z - point.z) < 4;
+  })!;
+  destroyNearDragon(destroyed, courseProgressAt(target, COURSE));
   assert.ok(destroyed.has(target.id));
   for (const id of destroyed) assert.equal(COURSE.blocks.find((block) => block.id === id)?.breakable, true);
 });

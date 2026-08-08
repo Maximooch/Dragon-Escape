@@ -1,6 +1,6 @@
 import * as pc from "playcanvas";
 import { Client, type Room } from "@colyseus/sdk";
-import { COURSE, progressAt, type CourseBlock } from "../course";
+import { courseProgressAt, getCourse, pathPointAt, progressAt, type CourseBlock, type CourseDefinition } from "../course";
 import {
   createRunner,
   destroyNearDragon,
@@ -13,6 +13,7 @@ import {
 } from "../simulation";
 import { beginPointerLockedJoin } from "./input";
 import { unlockAudioContext } from "./audio";
+import { MidiMusicPlayer } from "./midi";
 import { configureSceneFog } from "./rendering";
 import { movementFromAxes, touchLookRotation, type TouchAxes } from "./touch";
 
@@ -49,7 +50,8 @@ export class DragonEscapeRuntime {
   private dragon!: pc.Entity;
   private canvas: HTMLCanvasElement;
   private onView: (view: GameView) => void;
-  private runner: RunnerState = createRunner();
+  private course: CourseDefinition;
+  private runner: RunnerState;
   private input: InputState = { ...EMPTY_INPUT };
   private keys = new Set<string>();
   private yaw = 0;
@@ -70,6 +72,7 @@ export class DragonEscapeRuntime {
   private name = "Runner";
   private muted = false;
   private audio: AudioContext | null = null;
+  private music: MidiMusicPlayer | null = null;
   private audioState: GameView["audioState"] = "idle";
   private media = new Map<"check" | "roar" | "wing", HTMLAudioElement>();
   private lastCountdownBeat = 0;
@@ -81,9 +84,12 @@ export class DragonEscapeRuntime {
   private touchSprint = false;
   private touchLeapQueued = false;
 
-  constructor(canvas: HTMLCanvasElement, onView: (view: GameView) => void) {
+  constructor(canvas: HTMLCanvasElement, onView: (view: GameView) => void, courseId = "salto") {
     this.canvas = canvas;
     this.onView = onView;
+    this.course = getCourse(courseId);
+    this.runner = createRunner(this.course);
+    this.resetHeading();
   }
 
   mount() {
@@ -121,6 +127,8 @@ export class DragonEscapeRuntime {
       element.load();
     }
     this.media.clear();
+    this.music?.destroy();
+    this.music = null;
     void this.audio?.close();
     this.audio = null;
     this.room?.leave();
@@ -170,10 +178,27 @@ export class DragonEscapeRuntime {
     this.pitch = rotation.pitch;
   }
 
+  returnToMenu() {
+    this.room?.leave();
+    this.room = null;
+    this.online = false;
+    this.phase = "menu";
+    this.runner = createRunner(this.course);
+    this.elapsed = 0;
+    this.countdown = 0;
+    this.keys.clear();
+    this.touchAxes = { strafe: 0, forward: 0 };
+    this.touchJump = false;
+    this.touchSprint = false;
+    if (document.pointerLockElement === this.canvas) void document.exitPointerLock?.();
+    this.emitView(true);
+  }
+
   setMuted(muted: boolean) {
     this.muted = muted;
     if (muted) {
       for (const element of this.media.values()) element.pause();
+      this.music?.stop();
       this.setAudioState("muted");
     } else {
       this.testSound();
@@ -187,6 +212,7 @@ export class DragonEscapeRuntime {
       () => new AudioContext(),
       () => this.setAudioState("blocked"),
     );
+    this.music ??= new MidiMusicPlayer(this.audio);
     this.audio.onstatechange = () => {
       if (this.muted) this.setAudioState("muted");
       else if (this.audio?.state === "running") this.setAudioState("ready");
@@ -230,7 +256,8 @@ export class DragonEscapeRuntime {
 
   testSound() {
     if (this.muted) return;
-    this.unlockWebAudio();
+    const audio = this.unlockWebAudio();
+    if (audio) void this.music?.play(this.course.music).catch(() => undefined);
     void this.playMedia("check", 0.72).catch(() => undefined);
 
     // Authorize the reusable creature elements inside the same user gesture.
@@ -276,7 +303,8 @@ export class DragonEscapeRuntime {
 
   private updateDragonAudio(dragonZ: number) {
     if (this.phase !== "racing") return;
-    const distance = Math.abs(this.runner.position.z - dragonZ);
+    const dragon = pathPointAt(this.course, dragonZ);
+    const distance = Math.hypot(this.runner.position.x - dragon.x, this.runner.position.y - dragon.y, this.runner.position.z - dragon.z);
     if (this.elapsed >= this.nextDragonGrowl) {
       this.dragonGrowl(distance);
       this.nextDragonGrowl = this.elapsed + 3.5 + Math.min(4, distance * 0.035);
@@ -299,6 +327,13 @@ export class DragonEscapeRuntime {
   }
 
   private async connectToRoom(name: string) {
+    if (this.course.id !== "salto") {
+      this.online = false;
+      this.phase = "countdown";
+      this.countdown = 3.8;
+      this.emitView(true);
+      return;
+    }
     try {
       const endpoint = process.env.NEXT_PUBLIC_GAME_SERVER_URL || "ws://localhost:2567";
       const client = new Client(endpoint);
@@ -319,7 +354,8 @@ export class DragonEscapeRuntime {
   }
 
   private resetRace() {
-    this.runner = createRunner();
+    this.runner = createRunner(this.course);
+    this.resetHeading();
     this.destroyed.clear();
     for (const [id, entity] of this.blockEntities) entity.enabled = !this.destroyed.has(id);
     this.elapsed = 0;
@@ -334,6 +370,13 @@ export class DragonEscapeRuntime {
     this.touchJump = false;
     this.touchLeapQueued = false;
     this.rivals.forEach((rival) => { rival.finished = false; rival.entity.enabled = true; });
+  }
+
+  private resetHeading() {
+    const start = this.course.botPath[0];
+    const next = this.course.botPath[1] ?? start;
+    this.yaw = Math.atan2(next.x - start.x, next.z - start.z);
+    this.pitch = -0.08;
   }
 
   private bindInput() {
@@ -398,16 +441,17 @@ export class DragonEscapeRuntime {
     rim.setEulerAngles(18, -142, 0);
     app.root.addChild(rim);
 
-    for (const [index, position] of [[18, -8, 48], [72, 4, 122], [68, 24, 194]] as const) {
+    for (const [index, progress] of [0.2, 0.55, 0.84].entries()) {
+      const position = pathPointAt(this.course, this.course.finishZ * progress);
       const glow = new pc.Entity(`Lava bounce ${index}`);
       glow.addComponent("light", { type: "omni", color: new pc.Color(1, 0.12, 0.025), intensity: 1.35, range: 62, castShadows: false });
-      glow.setPosition(position[0], position[1], position[2]);
+      glow.setPosition(position.x, position.y - 5, position.z);
       app.root.addChild(glow);
     }
 
     const beacon = new pc.Entity("Beacon glow");
     beacon.addComponent("light", { type: "omni", color: new pc.Color(0.18, 1, 0.92), intensity: 2.1, range: 46, castShadows: false });
-    beacon.setPosition(COURSE.finish.x, COURSE.finish.y + 2, COURSE.finish.z);
+    beacon.setPosition(this.course.finish.x, this.course.finish.y + 2, this.course.finish.z);
     app.root.addChild(beacon);
 
     const materials = {
@@ -416,7 +460,7 @@ export class DragonEscapeRuntime {
       ember: this.material(new pc.Color(0.33, 0.12, 0.055), new pc.Color(1, 0.12, 0.015)),
       finish: this.material(new pc.Color(0.17, 0.36, 0.38), new pc.Color(0.03, 0.8, 0.68)),
     };
-    for (const b of COURSE.blocks) {
+    for (const b of this.course.blocks) {
       if (b.visible === false) continue;
       const entity = this.box(b, materials[b.kind]);
       this.blockEntities.set(b.id, entity);
@@ -461,15 +505,15 @@ export class DragonEscapeRuntime {
   }
 
   private loadPrototypeModels() {
-    this.loadContainer(COURSE.model, (resource) => {
+    this.loadContainer(this.course.model, (resource) => {
       const environment = resource.instantiateRenderEntity({ castShadows: !this.touchMode, receiveShadows: true });
-      environment.name = `${COURSE.name} schematic environment`;
-      const transform = COURSE.modelTransform;
+      environment.name = `${this.course.name} schematic environment`;
+      const transform = this.course.modelTransform;
       environment.setLocalScale(transform.scale, transform.scale, transform.scale);
       environment.setEulerAngles(0, transform.yaw, 0);
       environment.setPosition(transform.x, transform.y, transform.z);
       const mapMaterial = new pc.StandardMaterial();
-      mapMaterial.name = "Salto voxel terrain";
+      mapMaterial.name = `${this.course.name} voxel terrain`;
       mapMaterial.diffuse = pc.Color.WHITE;
       mapMaterial.diffuseVertexColor = true;
       mapMaterial.diffuseVertexColorChannel = "rgb";
@@ -601,14 +645,14 @@ export class DragonEscapeRuntime {
       return;
     }
     this.elapsed += dt;
-    simulateRunner(this.runner, this.input, dt, this.elapsed, this.destroyed);
+    simulateRunner(this.runner, this.input, dt, this.elapsed, this.destroyed, this.course);
     const dragonZ = dragonPosition(this.elapsed);
-    destroyNearDragon(this.destroyed, dragonZ);
+    destroyNearDragon(this.destroyed, dragonZ, this.course);
     this.syncDestroyed();
     this.updateDragon(dragonZ, this.elapsed);
     this.updateDragonAudio(dragonZ);
     this.updateRivals(this.elapsed);
-    if (this.runner.alive && dragonZ > this.runner.position.z - 2.4) this.runner.alive = false;
+    if (this.runner.alive && dragonZ > courseProgressAt(this.runner.position, this.course) - 2.4) this.runner.alive = false;
     if (!this.runner.alive || this.runner.finished) {
       this.resultHold += dt;
       if (this.resultHold > (this.runner.alive ? 0.7 : 3.2)) this.phase = "results";
@@ -627,7 +671,7 @@ export class DragonEscapeRuntime {
     const self = snapshot.players.find((player) => player.id === this.room?.sessionId);
     if (self) {
       if (snapshot.phase === "racing") {
-        simulateRunner(this.runner, this.input, dt, snapshot.elapsed, this.destroyed);
+        simulateRunner(this.runner, this.input, dt, snapshot.elapsed, this.destroyed, this.course);
       }
       const blend = Math.min(1, dt * 10);
       this.runner.position.x += (self.position.x - this.runner.position.x) * blend;
@@ -653,7 +697,7 @@ export class DragonEscapeRuntime {
     this.dragon.setPosition(
       route.x + Math.sin(elapsed * 0.65) * 1.4,
       route.y + 4.3 + Math.sin(elapsed * 1.7) * 0.45,
-      z,
+      route.z,
     );
     const left = this.dragon.findByName("left-wing");
     const right = this.dragon.findByName("right-wing");
@@ -664,28 +708,16 @@ export class DragonEscapeRuntime {
 
   private updateRivals(elapsed: number) {
     for (const rival of this.rivals) {
-      const z = Math.min(COURSE.finishZ + 2, Math.max(0, (elapsed - rival.offset) * rival.speed));
+      const z = Math.min(this.course.finishZ + 2, Math.max(0, (elapsed - rival.offset) * rival.speed));
       const p = this.botPath(z);
       rival.entity.setPosition(p.x, p.y + 0.85, p.z);
-      rival.entity.enabled = z < COURSE.finishZ;
-      rival.finished = z >= COURSE.finishZ;
+      rival.entity.enabled = z < this.course.finishZ;
+      rival.finished = z >= this.course.finishZ;
     }
   }
 
   private botPath(z: number): Vec3 {
-    let previous = COURSE.botPath[0];
-    for (const next of COURSE.botPath.slice(1)) {
-      if (z <= next.z) {
-        const t = Math.max(0, (z - previous.z) / Math.max(0.1, next.z - previous.z));
-        return {
-          x: previous.x + (next.x - previous.x) * t,
-          y: previous.y + (next.y - previous.y) * t + Math.sin(t * Math.PI) * 1.4,
-          z,
-        };
-      }
-      previous = next;
-    }
-    return { ...COURSE.botPath.at(-1)!, z };
+    return pathPointAt(this.course, z);
   }
 
   private syncDestroyed() {
@@ -712,14 +744,14 @@ export class DragonEscapeRuntime {
     const now = performance.now();
     if (!force && now - this.lastViewUpdate < 80) return;
     this.lastViewUpdate = now;
-    const progress = progressAt(this.runner.position.z);
-    const rivalProgress = this.rivals.map((rival) => progressAt(rival.entity.getPosition().z));
+    const progress = progressAt(courseProgressAt(this.runner.position, this.course), this.course);
+    const rivalProgress = this.rivals.map((rival) => progressAt(courseProgressAt(rival.entity.getPosition(), this.course), this.course));
     const place = 1 + rivalProgress.filter((value) => value > progress).length;
     let banner = "";
     if (this.phase === "countdown") banner = this.countdown > 3 ? "GET READY" : this.countdown > 0 ? String(Math.ceil(this.countdown)) : "RUN";
     else if (this.phase === "racing" && this.elapsed < 1) banner = "RUN";
     else if (!this.runner.alive) banner = "THE DRAGON HAS YOU";
-    const checkpoint = COURSE.checkpoints[Math.min(this.runner.checkpoint, COURSE.checkpoints.length - 1)]?.label || "The Gate";
+    const checkpoint = this.course.checkpoints[Math.min(this.runner.checkpoint, this.course.checkpoints.length - 1)]?.label || "The Gate";
     this.onView({
       phase: this.phase,
       banner,

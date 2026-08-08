@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
 import { DragonEscapeRuntime, type GameView } from "../lib/client/DragonEscapeRuntime";
 import { joystickAxes, type TouchAxes } from "../lib/client/touch";
+import { COURSE_OPTIONS } from "../lib/course";
 
 const initialView: GameView = {
   phase: "menu",
@@ -28,6 +29,7 @@ export function GameClient() {
   const [touchMode, setTouchMode] = useState(false);
   const [stick, setStick] = useState<TouchAxes>({ strafe: 0, forward: 0 });
   const [sprintActive, setSprintActive] = useState(false);
+  const [courseId, setCourseId] = useState("salto");
   const movePadRef = useRef<HTMLDivElement>(null);
   const movePointer = useRef<number | null>(null);
   const lookPointer = useRef<number | null>(null);
@@ -50,11 +52,11 @@ export function GameClient() {
 
   useEffect(() => {
     if (!canvasRef.current) return;
-    const runtime = new DragonEscapeRuntime(canvasRef.current, setView);
+    const runtime = new DragonEscapeRuntime(canvasRef.current, setView, courseId);
     runtimeRef.current = runtime;
     runtime.mount();
     return () => runtime.destroy();
-  }, []);
+  }, [courseId]);
 
   useEffect(() => {
     runtimeRef.current?.setTouchMode(touchMode);
@@ -66,6 +68,13 @@ export function GameClient() {
     runtimeRef.current?.setTouchMovement({ strafe: 0, forward: 0 });
     runtimeRef.current?.join(name.trim() || "Runner");
   }, [name, touchMode]);
+
+  const selectCourse = (nextId: string) => {
+    setView(initialView);
+    setCourseId(nextId);
+  };
+
+  const selectedCourse = COURSE_OPTIONS.find((course) => course.id === courseId) ?? COURSE_OPTIONS[0];
 
   const focusGame = () => runtimeRef.current?.capturePointer();
   const testSound = () => {
@@ -168,15 +177,16 @@ export function GameClient() {
       </header>
 
       {view.phase === "menu" && (
+        <div className="main-menu">
         <section className="menu-panel">
           <p className="eyebrow">PUBLIC PLAYTEST // BUILD 005</p>
           <h1>OUTRUN<br /><em>THE END.</em></h1>
-          <p className="intro">Salto is collapsing. Climb the floating archipelago before the dragon tears it from the sky.</p>
+          <p className="intro">{selectedCourse.description}</p>
           <label className="name-field">
             <span>RUNNER NAME</span>
             <input value={name} maxLength={18} onChange={(event) => setName(event.target.value)} onKeyDown={(event) => event.key === "Enter" && join()} />
           </label>
-          <button className="join-button" onClick={join}><span>JOIN NEXT RACE</span><b>→</b></button>
+          <button className="join-button" onClick={join}><span>RUN {selectedCourse.name.toUpperCase()}</span><b>→</b></button>
           <button className={`audio-test ${view.audioState}`} onClick={testSound}>
             <span>TEST SOUND</span>
             <b>{view.audioState === "ready" ? "AUDIBLE?" : view.audioState.toUpperCase()}</b>
@@ -198,13 +208,35 @@ export function GameClient() {
           )}
           <p className="tip">{touchMode ? "Landscape recommended · headphones optional" : "Click the course to capture your mouse. Press Esc to release it."}</p>
         </section>
+        <aside className="map-picker" aria-label="Choose a map">
+          <div className="map-picker-heading">
+            <div><p>COURSE SELECT</p><strong>CHOOSE YOUR ESCAPE</strong></div>
+            <span>{String(COURSE_OPTIONS.length).padStart(2, "0")} MAPS</span>
+          </div>
+          <div className="map-list">
+            {COURSE_OPTIONS.map((course, index) => (
+              <button
+                key={course.id}
+                className={`map-card ${course.id === courseId ? "selected" : ""}`}
+                aria-pressed={course.id === courseId}
+                onClick={() => selectCourse(course.id)}
+              >
+                <span className="map-number">0{index + 1}</span>
+                <span className="map-copy"><b>{course.name}</b><small>{course.description}</small></span>
+                <span className="map-meta"><em>{course.difficulty}</em><small>{course.status}</small></span>
+              </button>
+            ))}
+          </div>
+          <p className="map-disclaimer">Imported maps are test content. Salto has the authored route; additional routes are provisional.</p>
+        </aside>
+        </div>
       )}
 
       {view.phase !== "menu" && (
         <>
           <div className="crosshair" aria-hidden="true"><i /><i /></div>
           <aside className="race-card">
-            <p>SALTO // OWNED TEST MAP</p>
+            <p>{selectedCourse.name.toUpperCase()}{" // "}{selectedCourse.status}</p>
             <strong>{view.checkpoint}</strong>
             <div className="progress-track"><i style={{ width: `${view.progress}%` }} /></div>
             <div className="race-stats">
@@ -294,6 +326,7 @@ export function GameClient() {
           <p>{view.eliminated ? `The dragon caught you at ${view.progress}% of the course.` : `You escaped in ${view.time.toFixed(2)} seconds.`}</p>
           <div className="result-line"><span>FINAL PLACE</span><b>#{view.place} / {view.playerCount}</b></div>
           <button className="join-button" onClick={join}><span>RACE AGAIN</span><b>↻</b></button>
+          <button className="secondary-button" onClick={() => runtimeRef.current?.returnToMenu()}>CHANGE MAP</button>
         </section>
       )}
 

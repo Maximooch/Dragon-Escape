@@ -30,6 +30,16 @@ python tools/build_prototype_assets.py ../schematics/SaltoFixed.schematic public
   --scale 0.86 --start 147 296 --start-y 41 --finish 67 41
 ```
 
+Caves, Frost Run, and Archipel use factor-2 prototype meshes to keep their
+combined browser payload practical. Their route specs live in
+`tools/course-specs/` and explicitly remain provisional until manual playthrough
+QA replaces the inferred spawn, checkpoints, and line.
+
+The converter accepts cardinal `--yaw` rotation and emits model, collision,
+finish, route, music, and picker metadata into one generated course payload.
+Minecraft barrier block 166 is excluded from both render and collision output;
+it is an invisible editor/safety block, not visible course art.
+
 The converter packs axis-aligned normals with the standard
 `KHR_mesh_quantization` extension. Asset tests require explicit normals and
 materials so a loader fallback cannot silently discard the authored palette.

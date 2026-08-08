@@ -1,0 +1,16 @@
+{
+  "name": "Caves",
+  "description": "A torchlit descent through ruined mines and flooded stone chambers.",
+  "difficulty": "TECHNICAL",
+  "music": "/music/understone-pulse.mid",
+  "route": [
+    { "x": 164, "y": 51, "z": 54, "label": "Echo Gate" },
+    { "x": 172, "y": 41, "z": 80, "label": "The First Drop" },
+    { "x": 167, "y": 33, "z": 105, "label": "Shale Crossing" },
+    { "x": 141, "y": 27, "z": 143, "label": "Arrow Gallery" },
+    { "x": 139, "y": 20, "z": 172, "label": "Drowned Vault" },
+    { "x": 159, "y": 33, "z": 200, "label": "Lantern Rise" },
+    { "x": 120, "y": 63, "z": 217, "label": "Old Works" },
+    { "x": 105, "y": 44, "z": 240, "label": "Deep Beacon" }
+  ]
+}

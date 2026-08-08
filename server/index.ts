@@ -1,6 +1,6 @@
 import { Server, Room, type Client } from "colyseus";
 import { WebSocketTransport } from "@colyseus/ws-transport";
-import { COURSE } from "../lib/course";
+import { COURSE, courseProgressAt } from "../lib/course";
 import {
   createRunner,
   destroyNearDragon,
@@ -69,7 +69,7 @@ class DragonEscapeRoom extends Room {
       for (const runner of this.runners.values()) {
         simulateRunner(runner.state, runner.input, dt, this.elapsed, this.destroyed);
         runner.input.leap = false;
-        if (runner.state.alive && dragonZ > runner.state.position.z - 2.4) runner.state.alive = false;
+        if (runner.state.alive && dragonZ > courseProgressAt(runner.state.position, COURSE) - 2.4) runner.state.alive = false;
       }
       const active = [...this.runners.values()].filter((runner) => runner.state.alive && !runner.state.finished);
       if ((this.runners.size > 0 && active.length === 0) || this.elapsed > 62) {

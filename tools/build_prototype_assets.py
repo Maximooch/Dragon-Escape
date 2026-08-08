@@ -219,7 +219,7 @@ def load_coarse_schematic(source: Path, factor: int) -> np.ndarray:
     return grouped.max(axis=(1, 3, 5))
 
 
-def build_schematic(source: Path, path: Path, factor: int) -> np.ndarray:
+def build_schematic(source: Path, path: Path, factor: int, material_name: str = "Voxel terrain") -> np.ndarray:
     coarse = load_coarse_schematic(source, factor)
 
     vertices: list[tuple[float, float, float]] = []
@@ -235,11 +235,14 @@ def build_schematic(source: Path, path: Path, factor: int) -> np.ndarray:
         ((0, 0, -1), ((0, 0, 0), (0, 1, 0), (1, 1, 0), (1, 0, 0))),
     )
     block_ids = coarse >> 4
-    occupied = np.argwhere(block_ids != 0)
+    # 166 is Minecraft's invisible barrier block. Several archived maps use it
+    # for editor guides and safety volumes; rendering it creates giant magenta
+    # diamonds and planes that were never visible in the original game.
+    occupied = np.argwhere((block_ids != 0) & (block_ids != 166))
     ch, cl, cw = coarse.shape
 
     def occupied_at(x: int, y: int, z: int) -> bool:
-        return 0 <= x < cw and 0 <= y < ch and 0 <= z < cl and block_ids[y, z, x] != 0
+        return 0 <= x < cw and 0 <= y < ch and 0 <= z < cl and block_ids[y, z, x] not in {0, 166}
 
     face_shades = {
         (1, 0, 0): 0.84,
@@ -295,7 +298,7 @@ def build_schematic(source: Path, path: Path, factor: int) -> np.ndarray:
     )
     mesh.visual.vertex_colors = np.asarray(colors, dtype=np.uint8)
     scene = trimesh.Scene(mesh)
-    path.write_bytes(export_glb_with_material(scene, "Salto voxel terrain", quantize_normals=True))
+    path.write_bytes(export_glb_with_material(scene, material_name, quantize_normals=True))
     print(f"{source.name}: {len(occupied):,} voxels, {len(faces):,} triangles -> {path}")
     return coarse
 
@@ -308,12 +311,18 @@ def build_collision_course(
     start: tuple[int, int],
     finish: tuple[int, int],
     start_y: int | None,
+    *,
+    course_id: str = "salto",
+    asset_name: str = "salto",
+    yaw: int = 180,
+    route: list[dict] | None = None,
+    metadata: dict | None = None,
 ) -> None:
     """Emit merged 3D collision cuboids aligned to the visual GLB."""
     ch, cl, cw = coarse.shape
     # Decorative/non-colliding legacy IDs. Shape-specific blocks such as stairs,
     # slabs, fences, and panes remain conservative full-cube proxies for now.
-    non_solid = [0, 6, 8, 9, 10, 11, 31, 32, 37, 38, 39, 40, 50, 51, 55, 59, 63, 65, 66, 68, 69, 75, 76, 77, 78, 83, 106, 131, 132, 143, 171, 175, 176, 177]
+    non_solid = [0, 6, 8, 9, 10, 11, 31, 32, 37, 38, 39, 40, 50, 51, 55, 59, 63, 65, 66, 68, 69, 75, 76, 77, 78, 83, 106, 131, 132, 143, 166, 171, 175, 176, 177]
     block_ids = coarse >> 4
     solid = ~np.isin(block_ids, non_solid)
 
@@ -324,15 +333,42 @@ def build_collision_course(
         raise ValueError("start coordinate has no solid surface")
     start_top = start_y // factor if start_y is not None else int(occupied_at_start[-1])
 
+    if yaw not in {0, 90, 180, 270}:
+        raise ValueError("yaw must be 0, 90, 180, or 270 degrees")
+
+    def rotate(raw_x: float, raw_z: float) -> tuple[float, float]:
+        if yaw == 0:
+            return raw_x, raw_z
+        if yaw == 90:
+            return raw_z, -raw_x
+        if yaw == 180:
+            return -raw_x, -raw_z
+        return -raw_z, raw_x
+
+    start_raw_x = start_cx + 0.5 - cw / 2
+    start_raw_z = start_cz + 0.5
+    start_rotated_x, start_rotated_z = rotate(start_raw_x, start_raw_z)
     transform = {
         "scale": scale,
-        "x": (start_cx + 0.5 - cw / 2) * scale,
+        "x": -start_rotated_x * scale,
         "y": -(start_top + 1) * scale,
-        "z": (start_cz + 0.5) * scale,
-        "yaw": 180,
+        "z": -start_rotated_z * scale,
+        "yaw": yaw,
     }
-    finish_z = transform["z"] - (finish_cz + 0.5) * scale
     death_y = -18.0
+
+    def world_point(raw_x: float, raw_y: float, raw_z: float, *, surface: bool = True) -> dict[str, float]:
+        rotated_x, rotated_z = rotate(raw_x / factor + 0.5 - cw / 2, raw_z / factor + 0.5)
+        y_offset = 1 if surface else 0.5
+        return {
+            "x": round(transform["x"] + rotated_x * scale, 4),
+            "y": round(transform["y"] + (raw_y / factor + y_offset) * scale, 4),
+            "z": round(transform["z"] + rotated_z * scale, 4),
+        }
+
+    finish_y_values = np.flatnonzero(solid[:, finish_cz, finish_cx])
+    finish_top = int(finish_y_values[-1]) if len(finish_y_values) else start_top
+    finish_world = world_point(finish[0], finish_top * factor, finish[1])
 
     # Greedily merge solid voxels into 3D boxes. This preserves caves, foliage,
     # overheads, and walls instead of turning every top pixel into a solid pillar.
@@ -365,32 +401,56 @@ def build_collision_course(
 
     blocks = []
     for index, (x, y, z, width, height, depth, block_id) in enumerate(cuboids):
-        center_x = transform["x"] - (x + width / 2 - cw / 2) * scale
-        center_z = transform["z"] - (z + depth / 2) * scale
+        rotated_x, rotated_z = rotate(x + width / 2 - cw / 2, z + depth / 2)
+        center_x = transform["x"] + rotated_x * scale
+        center_z = transform["z"] + rotated_z * scale
         center_y = transform["y"] + (y + height / 2) * scale
+        size_x = (depth if yaw in {90, 270} else width) * scale
+        size_z = (width if yaw in {90, 270} else depth) * scale
+        endpoint_distance = min(
+            (center_x ** 2 + center_z ** 2) ** 0.5,
+            ((center_x - finish_world["x"]) ** 2 + (center_z - finish_world["z"]) ** 2) ** 0.5,
+        )
         blocks.append({
-            "id": f"salto-{index}",
+            "id": f"{course_id}-{index}",
             "x": round(center_x, 4),
             "y": round(center_y, 4),
             "z": round(center_z, 4),
-            "sx": round(width * scale, 4),
+            "sx": round(size_x, 4),
             "sy": round(height * scale, 4),
-            "sz": round(depth * scale, 4),
+            "sz": round(size_z, 4),
             "kind": kind(block_id),
-            "breakable": not (center_z < 8 or center_z > finish_z - 8),
+            "breakable": endpoint_distance >= 8,
             "visible": False,
         })
 
+    route_payload = []
+    for waypoint in route or []:
+        point = world_point(waypoint["x"], waypoint["y"], waypoint["z"])
+        point["label"] = waypoint["label"]
+        route_payload.append(point)
+    if not route_payload:
+        route_payload = [
+            {"x": 0, "y": 0.05, "z": 0, "label": "Launch"},
+            {**finish_world, "label": "Sanctuary"},
+        ]
+
     payload = {
-        "model": "/models/salto.glb",
+        "id": course_id,
+        "name": (metadata or {}).get("name", course_id.title()),
+        "description": (metadata or {}).get("description", "Imported prototype route"),
+        "difficulty": (metadata or {}).get("difficulty", "TEST ROUTE"),
+        "music": (metadata or {}).get("music", "/music/embers-at-your-heels.mid"),
+        "model": f"/models/{asset_name}.glb",
         "modelTransform": transform,
-        "finishZ": round(finish_z - 2, 4),
         "deathY": death_y,
         "spawn": {"x": 0, "y": 0.05, "z": 0},
+        "finish": {**finish_world, "radius": 5.5},
+        "route": route_payload,
         "blocks": blocks,
     }
     path.write_text(json.dumps(payload, separators=(",", ":")) + "\n")
-    print(f"Salto collision: {len(cuboids):,} merged cuboids -> {path}")
+    print(f"{course_id} collision: {len(cuboids):,} merged cuboids -> {path}")
 
 
 def main() -> None:
@@ -404,12 +464,17 @@ def main() -> None:
     parser.add_argument("--start", nargs=2, type=int, metavar=("X", "Z"))
     parser.add_argument("--start-y", type=int, help="solid block Y under the spawn point")
     parser.add_argument("--finish", nargs=2, type=int, metavar=("X", "Z"))
+    parser.add_argument("--yaw", type=int, default=180, choices=(0, 90, 180, 270))
+    parser.add_argument("--course-id")
+    parser.add_argument("--route-file", type=Path)
     args = parser.parse_args()
     args.output.mkdir(parents=True, exist_ok=True)
     build_player(args.output / "runner.glb")
     build_dragon(args.output / "cinder-wyrm.glb")
     asset_name = args.asset_name or args.schematic.stem.lower().replace(" ", "-")
-    coarse = build_schematic(args.schematic, args.output / f"{asset_name}.glb", args.factor)
+    route_config = json.loads(args.route_file.read_text()) if args.route_file else {}
+    course_id = args.course_id or asset_name
+    coarse = build_schematic(args.schematic, args.output / f"{asset_name}.glb", args.factor, f"{route_config.get('name', course_id.title())} voxel terrain")
     if args.course_output:
         if not args.start or not args.finish:
             parser.error("--course-output requires --start X Z and --finish X Z")
@@ -421,6 +486,11 @@ def main() -> None:
             tuple(args.start),
             tuple(args.finish),
             args.start_y,
+            course_id=course_id,
+            asset_name=asset_name,
+            yaw=args.yaw,
+            route=route_config.get("route"),
+            metadata=route_config,
         )
 
 

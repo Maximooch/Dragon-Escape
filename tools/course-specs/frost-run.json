@@ -1,0 +1,16 @@
+{
+  "name": "Frost Run",
+  "description": "A fast, exposed line across snow islands, balloons, and shattered bridges.",
+  "difficulty": "QUICK / EXPOSED",
+  "music": "/music/frozen-flight.mid",
+  "route": [
+    { "x": 45, "y": 95, "z": 35, "label": "Whitewind Launch" },
+    { "x": 65, "y": 99, "z": 70, "label": "Powder Steps" },
+    { "x": 82, "y": 117, "z": 117, "label": "Furnace Balloon" },
+    { "x": 48, "y": 129, "z": 103, "label": "Ice Needle" },
+    { "x": 99, "y": 136, "z": 129, "label": "Broken Span" },
+    { "x": 144, "y": 146, "z": 154, "label": "North House" },
+    { "x": 188, "y": 155, "z": 113, "label": "Gale Crest" },
+    { "x": 163, "y": 120, "z": 92, "label": "Aurora Beacon" }
+  ]
+}

@@ -1,4 +1,4 @@
-import { COURSE, type CourseBlock } from "./course";
+import { COURSE, courseProgressAt, pathPointAt, type CourseBlock, type CourseDefinition } from "./course";
 import { createCollisionIndex } from "./collision";
 
 export type Vec3 = { x: number; y: number; z: number };
@@ -36,9 +36,9 @@ export function movementBasis(yaw: number) {
   };
 }
 
-export function createRunner(): RunnerState {
+export function createRunner(course: CourseDefinition = COURSE): RunnerState {
   return {
-    position: { ...COURSE.spawn },
+    position: { ...course.spawn },
     velocity: { x: 0, y: 0, z: 0 },
     grounded: false,
     alive: true,
@@ -50,7 +50,15 @@ export function createRunner(): RunnerState {
 
 const radius = 0.34;
 const height = 1.72;
-const collisionIndex = createCollisionIndex(COURSE.blocks);
+const collisionIndexes = new WeakMap<CourseDefinition, ReturnType<typeof createCollisionIndex>>();
+
+function collisionIndex(course: CourseDefinition) {
+  const existing = collisionIndexes.get(course);
+  if (existing) return existing;
+  const created = createCollisionIndex(course.blocks);
+  collisionIndexes.set(course, created);
+  return created;
+}
 
 function overlap(position: Vec3, b: CourseBlock) {
   return position.x + radius > b.x - b.sx / 2 &&
@@ -61,8 +69,8 @@ function overlap(position: Vec3, b: CourseBlock) {
     position.z - radius < b.z + b.sz / 2;
 }
 
-function blocked(position: Vec3, destroyed: ReadonlySet<string>) {
-  return collisionIndex.nearby(position).some((b) => !destroyed.has(b.id) && overlap(position, b));
+function blocked(position: Vec3, destroyed: ReadonlySet<string>, course: CourseDefinition) {
+  return collisionIndex(course).nearby(position).some((b) => !destroyed.has(b.id) && overlap(position, b));
 }
 
 export function simulateRunner(
@@ -71,6 +79,7 @@ export function simulateRunner(
   dt: number,
   now: number,
   destroyed: ReadonlySet<string>,
+  course: CourseDefinition = COURSE,
 ) {
   if (!runner.alive || runner.finished) return;
 
@@ -102,20 +111,20 @@ export function simulateRunner(
 
   const previousY = runner.position.y;
   const nextX = { ...runner.position, x: runner.position.x + runner.velocity.x * dt };
-  if (!blocked(nextX, destroyed)) runner.position.x = nextX.x;
+  if (!blocked(nextX, destroyed, course)) runner.position.x = nextX.x;
   else runner.velocity.x = 0;
 
   const nextZ = { ...runner.position, z: runner.position.z + runner.velocity.z * dt };
-  if (!blocked(nextZ, destroyed)) runner.position.z = nextZ.z;
+  if (!blocked(nextZ, destroyed, course)) runner.position.z = nextZ.z;
   else runner.velocity.z = 0;
 
   runner.grounded = false;
   const nextY = { ...runner.position, y: runner.position.y + runner.velocity.y * dt };
-  if (!blocked(nextY, destroyed)) {
+  if (!blocked(nextY, destroyed, course)) {
     runner.position.y = nextY.y;
   } else if (runner.velocity.y <= 0) {
     let bestTop = -Infinity;
-    for (const b of collisionIndex.nearby(runner.position)) {
+    for (const b of collisionIndex(course).nearby(runner.position)) {
       if (destroyed.has(b.id)) continue;
       const top = b.y + b.sy / 2;
       const horizontallyInside = runner.position.x + radius > b.x - b.sx / 2 &&
@@ -133,15 +142,15 @@ export function simulateRunner(
     runner.velocity.y = 0;
   }
 
-  const checkpoints = COURSE.checkpoints;
-  while (runner.checkpoint + 1 < checkpoints.length && runner.position.z >= checkpoints[runner.checkpoint + 1].z) {
+  const routeProgress = courseProgressAt(runner.position, course);
+  const checkpoints = course.checkpoints;
+  while (runner.checkpoint + 1 < checkpoints.length && routeProgress >= checkpoints[runner.checkpoint + 1].progress - 0.75) {
     runner.checkpoint += 1;
   }
-  const finish = COURSE.finish;
-  if (runner.position.z >= COURSE.finishZ &&
-    Math.abs(runner.position.x - finish.x) <= finish.radius &&
+  const finish = course.finish;
+  if (Math.hypot(runner.position.x - finish.x, runner.position.z - finish.z) <= finish.radius &&
     Math.abs(runner.position.y - finish.y) <= finish.radius) runner.finished = true;
-  if (runner.position.y < COURSE.deathY) runner.alive = false;
+  if (runner.position.y < course.deathY) runner.alive = false;
 }
 
 export function dragonPosition(elapsed: number) {
@@ -151,16 +160,16 @@ export function dragonPosition(elapsed: number) {
   return -16 + t * 4.35 + t * t * 0.018;
 }
 
-export function destroyNearDragon(destroyed: Set<string>, dragonZ: number) {
-  for (const b of COURSE.blocks) {
+export function destroyNearDragon(destroyed: Set<string>, dragonZ: number, course: CourseDefinition = COURSE) {
+  const dragon = pathPointAt(course, dragonZ);
+  for (const b of course.blocks) {
     if (!b.breakable || destroyed.has(b.id)) continue;
-    const dz = b.z - dragonZ;
-    if (Math.abs(dz) < 3.7) destroyed.add(b.id);
+    if (Math.hypot(b.x - dragon.x, b.z - dragon.z) < 4.4) destroyed.add(b.id);
   }
 }
 
-export function respawnAtCheckpoint(runner: RunnerState) {
-  const checkpoint = COURSE.checkpoints[Math.max(0, runner.checkpoint - 1)];
+export function respawnAtCheckpoint(runner: RunnerState, course: CourseDefinition = COURSE) {
+  const checkpoint = course.checkpoints[Math.max(0, runner.checkpoint - 1)];
   runner.position = { x: checkpoint.x, y: checkpoint.y + 2, z: checkpoint.z };
   runner.velocity = { x: 0, y: 0, z: 0 };
   runner.alive = true;

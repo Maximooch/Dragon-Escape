@@ -18,6 +18,7 @@ The MVP already proves the broad loop:
 - A deterministic broadband audio check, dragon roar, and wing beat replace the nearly inaudible sub-bass-only mix; visible UI now reports ready/blocked/muted state.
 - Salto now preserves legacy block metadata and renders with an explicit vertex-color material, flat normals, directional face shading, per-corner voxel AO, ACES tone mapping, and a warm-key/cool-fill/ember-rim lighting rig.
 - Coarse-pointer devices now get a left movement stick, right-side drag look, jump/leap buttons, toggle sprint, safe-area-aware HUD, portrait guidance, and a mobile rendering budget with capped pixel ratio, shorter shadows, and fewer particles.
+- The main menu now offers Salto plus provisional Caves, Frost Run, and Archipel test routes; each imported map has aligned GLB visuals, 3D collision, route metadata, and an original MIDI theme.
 - Mouse capture, race HUD, results, rematch, and a small rule-test suite exist.
 
 The main gaps are equally concrete:

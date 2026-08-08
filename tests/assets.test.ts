@@ -8,7 +8,7 @@ function readGlbDocument(data: Buffer) {
   return JSON.parse(data.subarray(20, 20 + jsonLength).toString("utf8").trimEnd());
 }
 
-for (const name of ["runner.glb", "cinder-wyrm.glb", "salto.glb"]) {
+for (const name of ["runner.glb", "cinder-wyrm.glb", "salto.glb", "caves.glb", "frost-run.glb", "archipel.glb"]) {
   test(`${name} is a valid binary glTF asset`, async () => {
     const data = await readFile(new URL(`../public/models/${name}`, import.meta.url));
     assert.equal(data.subarray(0, 4).toString("ascii"), "glTF");
@@ -17,15 +17,17 @@ for (const name of ["runner.glb", "cinder-wyrm.glb", "salto.glb"]) {
   });
 }
 
-test("Salto GLB carries explicit colors, normals, and a terrain material", async () => {
-  const data = await readFile(new URL("../public/models/salto.glb", import.meta.url));
-  const document = readGlbDocument(data);
-  const primitive = document.meshes[0].primitives[0];
-  assert.ok("COLOR_0" in primitive.attributes);
-  assert.ok("NORMAL" in primitive.attributes);
-  assert.equal(document.materials[primitive.material].name, "Salto voxel terrain");
-  assert.ok(document.extensionsRequired.includes("KHR_mesh_quantization"));
-});
+for (const [name, materialName] of [["salto.glb", "Salto voxel terrain"], ["caves.glb", "Caves voxel terrain"], ["frost-run.glb", "Frost Run voxel terrain"], ["archipel.glb", "Archipel voxel terrain"]]) {
+  test(`${name} carries explicit colors, normals, and a terrain material`, async () => {
+    const data = await readFile(new URL(`../public/models/${name}`, import.meta.url));
+    const document = readGlbDocument(data);
+    const primitive = document.meshes[0].primitives[0];
+    assert.ok("COLOR_0" in primitive.attributes);
+    assert.ok("NORMAL" in primitive.attributes);
+    assert.equal(document.materials[primitive.material].name, materialName);
+    assert.ok(document.extensionsRequired.includes("KHR_mesh_quantization"));
+  });
+}
 
 for (const [name, materialName] of [
   ["runner.glb", "Runner voxel character"],

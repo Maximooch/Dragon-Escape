@@ -6,10 +6,10 @@ Play the current public test at [dragon-escape-playtest.maximooch.chatgpt.site](
 
 ## Included
 
-- One playable owned test course: **Salto**
+- A selectable course catalog: authored **Salto** plus provisional imported test routes for **Caves**, **Frost Run**, and **Archipel**
 - First-person mouse/touch look, keyboard or virtual-stick movement, jumping, sprinting, and an eight-second leap
 - Countdown, checkpoints, course progress, placement, elimination, spectating, results, and rematch flow
-- Procedural low-poly visuals and synthesized sound; no borrowed game assets
+- Voxel GLB environments, original MIDI scores synthesized through Web Audio, and authored dragon sound cues
 - Offline demo rivals when a match server is unavailable
 - Colyseus public-room server with server-side movement, collision, dragon, destruction, and match state
 - Shared TypeScript simulation with automated rule tests
@@ -44,7 +44,9 @@ npm run build
 
 - `app/` — game shell, HUD, menus, metadata
 - `lib/client/` — PlayCanvas presentation and client prediction
-- `lib/course.ts` — authored course geometry and checkpoints
+- `lib/course.ts` — course catalog, route progress, geometry, and checkpoints
+- `tools/course-specs/` — provisional waypoint metadata for imported test maps
+- `tools/build_midi_tracks.py` — deterministic source for the original MIDI loops
 - `lib/simulation.ts` — shared movement, collision, dragon and destruction rules
 - `server/` — authoritative Colyseus public match room
 - `tests/` — simulation and course invariants
