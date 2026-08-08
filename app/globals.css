@@ -68,6 +68,10 @@ kbd { display: inline-flex; min-width: 46px; justify-content: center; margin-rig
 .center-banner.danger { color: var(--ember); font-size: clamp(36px, 6vw, 80px); }
 @keyframes slam { from { transform: translate(-50%, -50%) scale(1.45); opacity: 0; } }
 
+.look-prompt { position: absolute; left: 50%; bottom: 54px; transform: translateX(-50%); display: grid; gap: 5px; min-width: 260px; padding: 14px 20px; border: 1px solid var(--cyan); background: rgba(7,7,11,.9); color: var(--bone); text-align: center; cursor: pointer; box-shadow: 0 0 28px rgba(88,227,210,.14); }
+.look-prompt b { color: var(--cyan); font-size: 11px; letter-spacing: .13em; }
+.look-prompt span { color: #958c84; font-size: 8px; }
+
 .results-panel { left: 50%; transform: translate(-50%, -48%); text-align: center; max-width: 470px; box-shadow: 14px 14px 0 rgba(0,0,0,.34); }
 .results-panel h2 { margin: 0 0 12px; color: var(--ember); font-family: var(--font-geist-sans), sans-serif; font-size: clamp(42px, 7vw, 72px); letter-spacing: -.07em; }
 .results-panel > p:not(.eyebrow) { color: #b9afa4; font-family: var(--font-geist-sans), sans-serif; }

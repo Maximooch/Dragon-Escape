@@ -11,6 +11,7 @@ import {
   type RunnerState,
   type Vec3,
 } from "../simulation";
+import { beginPointerLockedJoin } from "./input";
 
 export type GameView = {
   phase: "menu" | "countdown" | "racing" | "results";
@@ -23,6 +24,7 @@ export type GameView = {
   leapCooldown: number;
   online: boolean;
   eliminated: boolean;
+  pointerLocked: boolean;
 };
 
 type Rival = { id: string; name: string; speed: number; offset: number; entity: pc.Entity; finished: boolean };
@@ -65,6 +67,8 @@ export class DragonEscapeRuntime {
   private muted = false;
   private audio: AudioContext | null = null;
   private lastCountdownBeat = 0;
+  private nextDragonGrowl = 2;
+  private nextWingBeat = 0;
 
   constructor(canvas: HTMLCanvasElement, onView: (view: GameView) => void) {
     this.canvas = canvas;
@@ -96,13 +100,16 @@ export class DragonEscapeRuntime {
     window.removeEventListener("keydown", this.keyDown);
     window.removeEventListener("keyup", this.keyUp);
     document.removeEventListener("mousemove", this.mouseMove);
+    document.removeEventListener("pointerlockchange", this.pointerLockChange);
     this.room?.leave();
     this.app?.destroy();
     this.app = null;
   }
 
   capturePointer() {
-    if (this.phase !== "menu") this.canvas.requestPointerLock?.();
+    if (this.phase === "menu" || document.pointerLockElement === this.canvas) return;
+    const request = this.canvas.requestPointerLock?.();
+    if (request && "catch" in request) request.catch(() => undefined);
   }
 
   setMuted(muted: boolean) { this.muted = muted; }
@@ -121,10 +128,89 @@ export class DragonEscapeRuntime {
     oscillator.stop(this.audio.currentTime + duration);
   }
 
-  async join(name: string) {
+  private dragonGrowl(distance: number) {
+    if (this.muted) return;
+    this.audio ??= new AudioContext();
+    void this.audio.resume();
+    const now = this.audio.currentTime;
+    const proximity = Math.max(0.15, Math.min(1, 1 - distance / 85));
+    const master = this.audio.createGain();
+    const filter = this.audio.createBiquadFilter();
+    master.gain.setValueAtTime(0.0001, now);
+    master.gain.exponentialRampToValueAtTime(0.045 * proximity, now + 0.08);
+    master.gain.exponentialRampToValueAtTime(0.0001, now + 1.15);
+    filter.type = "lowpass";
+    filter.frequency.setValueAtTime(420, now);
+    filter.frequency.exponentialRampToValueAtTime(95, now + 1.1);
+    filter.Q.value = 5;
+    filter.connect(master).connect(this.audio.destination);
+
+    for (const [frequency, detune] of [[58, -13], [73, 9]] as const) {
+      const oscillator = this.audio.createOscillator();
+      oscillator.type = "sawtooth";
+      oscillator.frequency.setValueAtTime(frequency, now);
+      oscillator.frequency.exponentialRampToValueAtTime(frequency * 0.58, now + 1.1);
+      oscillator.detune.value = detune;
+      oscillator.connect(filter);
+      oscillator.start(now);
+      oscillator.stop(now + 1.18);
+    }
+
+    const sampleRate = this.audio.sampleRate;
+    const buffer = this.audio.createBuffer(1, Math.floor(sampleRate * 1.1), sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let i = 0; i < data.length; i++) data[i] = (Math.random() * 2 - 1) * (1 - i / data.length);
+    const noise = this.audio.createBufferSource();
+    noise.buffer = buffer;
+    noise.playbackRate.value = 0.55;
+    noise.connect(filter);
+    noise.start(now);
+  }
+
+  private wingBeat(distance: number) {
+    if (this.muted || distance > 48) return;
+    this.audio ??= new AudioContext();
+    const now = this.audio.currentTime;
+    const buffer = this.audio.createBuffer(1, Math.floor(this.audio.sampleRate * 0.32), this.audio.sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let i = 0; i < data.length; i++) data[i] = (Math.random() * 2 - 1) * Math.sin(Math.PI * i / data.length);
+    const source = this.audio.createBufferSource();
+    const filter = this.audio.createBiquadFilter();
+    const gain = this.audio.createGain();
+    filter.type = "lowpass";
+    filter.frequency.value = 170;
+    gain.gain.setValueAtTime(0.0001, now);
+    gain.gain.linearRampToValueAtTime(0.022 * (1 - distance / 60), now + 0.08);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.31);
+    source.connect(filter).connect(gain).connect(this.audio.destination);
+    source.start(now);
+  }
+
+  private updateDragonAudio(dragonZ: number) {
+    if (this.phase !== "racing") return;
+    const distance = Math.abs(this.runner.position.z - dragonZ);
+    if (this.elapsed >= this.nextDragonGrowl) {
+      this.dragonGrowl(distance);
+      this.nextDragonGrowl = this.elapsed + 3.5 + Math.min(4, distance * 0.035);
+    }
+    if (this.elapsed >= this.nextWingBeat) {
+      this.wingBeat(distance);
+      this.nextWingBeat = this.elapsed + 1.05;
+    }
+  }
+
+  join(name: string) {
     this.name = name;
     this.tone(180, 0.12, 0.035);
-    this.resetRace();
+    // Safari requires pointer lock to stay inside the original button gesture.
+    beginPointerLockedJoin(
+      () => this.resetRace(),
+      () => this.capturePointer(),
+      () => { void this.connectToRoom(name); },
+    );
+  }
+
+  private async connectToRoom(name: string) {
     try {
       const endpoint = process.env.NEXT_PUBLIC_GAME_SERVER_URL || "ws://localhost:2567";
       const client = new Client(endpoint);
@@ -141,7 +227,6 @@ export class DragonEscapeRuntime {
       this.phase = "countdown";
       this.countdown = 3.8;
     }
-    this.capturePointer();
     this.emitView(true);
   }
 
@@ -154,6 +239,9 @@ export class DragonEscapeRuntime {
     this.latestSnapshot = null;
     this.phase = "countdown";
     this.countdown = 3.8;
+    this.lastCountdownBeat = 0;
+    this.nextDragonGrowl = 2;
+    this.nextWingBeat = 0;
     this.rivals.forEach((rival) => { rival.finished = false; rival.entity.enabled = true; });
   }
 
@@ -161,7 +249,10 @@ export class DragonEscapeRuntime {
     window.addEventListener("keydown", this.keyDown);
     window.addEventListener("keyup", this.keyUp);
     document.addEventListener("mousemove", this.mouseMove);
+    document.addEventListener("pointerlockchange", this.pointerLockChange);
   }
+
+  private pointerLockChange = () => this.emitView(true);
 
   private keyDown = (event: KeyboardEvent) => {
     this.keys.add(event.code);
@@ -318,6 +409,7 @@ export class DragonEscapeRuntime {
     destroyNearDragon(this.destroyed, dragonZ);
     this.syncDestroyed();
     this.updateDragon(dragonZ, this.elapsed);
+    this.updateDragonAudio(dragonZ);
     this.updateRivals(this.elapsed);
     if (this.runner.alive && dragonZ > this.runner.position.z - 2.4) this.runner.alive = false;
     if (!this.runner.alive || this.runner.finished) {
@@ -334,6 +426,7 @@ export class DragonEscapeRuntime {
     this.destroyed = new Set(snapshot.destroyed);
     this.syncDestroyed();
     this.updateDragon(snapshot.dragonZ, snapshot.elapsed);
+    this.updateDragonAudio(snapshot.dragonZ);
     const self = snapshot.players.find((player) => player.id === this.room?.sessionId);
     if (self) {
       if (snapshot.phase === "racing") {
@@ -434,6 +527,7 @@ export class DragonEscapeRuntime {
       leapCooldown: Math.max(0, this.runner.leapReadyAt - this.elapsed),
       online: this.online,
       eliminated: !this.runner.alive,
+      pointerLocked: document.pointerLockElement === this.canvas,
     });
   }
 }

@@ -26,6 +26,15 @@ export const EMPTY_INPUT: InputState = {
   jump: false, sprint: false, leap: false, yaw: 0,
 };
 
+export function movementBasis(yaw: number) {
+  return {
+    forwardX: Math.sin(yaw),
+    forwardZ: Math.cos(yaw),
+    rightX: -Math.cos(yaw),
+    rightZ: Math.sin(yaw),
+  };
+}
+
 export function createRunner(): RunnerState {
   return {
     position: { ...COURSE.spawn },
@@ -64,24 +73,21 @@ export function simulateRunner(
   if (!runner.alive || runner.finished) return;
 
   const yaw = input.yaw;
-  const forwardX = Math.sin(yaw);
-  const forwardZ = Math.cos(yaw);
-  const rightX = Math.cos(yaw);
-  const rightZ = -Math.sin(yaw);
+  const { forwardX, forwardZ, rightX, rightZ } = movementBasis(yaw);
   let moveX = (input.forward ? 1 : 0) - (input.back ? 1 : 0);
   let moveY = (input.right ? 1 : 0) - (input.left ? 1 : 0);
   const length = Math.hypot(moveX, moveY) || 1;
   moveX /= length;
   moveY /= length;
-  const speed = input.sprint ? 7.8 : 6.25;
+  const speed = input.sprint ? 9.2 : 7.1;
   const targetX = (forwardX * moveX + rightX * moveY) * speed;
   const targetZ = (forwardZ * moveX + rightZ * moveY) * speed;
-  const control = runner.grounded ? 15 : 4.5;
+  const control = runner.grounded ? 22 : 6;
   runner.velocity.x += (targetX - runner.velocity.x) * Math.min(1, control * dt);
   runner.velocity.z += (targetZ - runner.velocity.z) * Math.min(1, control * dt);
 
   if (input.jump && runner.grounded) {
-    runner.velocity.y = 7.4;
+    runner.velocity.y = 7.9;
     runner.grounded = false;
   }
   if (input.leap && now >= runner.leapReadyAt) {

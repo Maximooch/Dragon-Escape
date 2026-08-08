@@ -1,7 +1,15 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { COURSE, progressAt } from "../lib/course";
-import { createRunner, destroyNearDragon, dragonPosition, simulateRunner } from "../lib/simulation";
+import { createRunner, destroyNearDragon, dragonPosition, movementBasis, simulateRunner } from "../lib/simulation";
+
+test("movement basis matches the first-person camera handedness", () => {
+  const facingForward = movementBasis(0);
+  assert.deepEqual(facingForward, { forwardX: 0, forwardZ: 1, rightX: -1, rightZ: 0 });
+  const facingRight = movementBasis(-Math.PI / 2);
+  assert.ok(Math.abs(facingRight.forwardX + 1) < 1e-10);
+  assert.ok(Math.abs(facingRight.rightZ + 1) < 1e-10);
+});
 
 test("course has a complete authored race path", () => {
   assert.equal(COURSE.checkpoints.at(0)?.z, 0);

@@ -14,6 +14,7 @@ const initialView: GameView = {
   leapCooldown: 0,
   online: false,
   eliminated: false,
+  pointerLocked: false,
 };
 
 export function GameClient() {
@@ -90,6 +91,13 @@ export function GameClient() {
             <div><b>DRAGON LEAP</b><small>{view.leapCooldown <= 0 ? "READY" : `${view.leapCooldown.toFixed(1)}s`}</small></div>
           </aside>
         </>
+      )}
+
+      {view.phase !== "menu" && !view.pointerLocked && view.phase !== "results" && (
+        <button className="look-prompt" onClick={focusGame}>
+          <b>CLICK TO LOOK</b>
+          <span>Mouse controls camera · Esc releases</span>
+        </button>
       )}
 
       {view.banner && <div className={`center-banner ${view.eliminated ? "danger" : ""}`}>{view.banner}</div>}
