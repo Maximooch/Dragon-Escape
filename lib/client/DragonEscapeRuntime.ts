@@ -13,6 +13,7 @@ import {
 } from "../simulation";
 import { beginPointerLockedJoin } from "./input";
 import { unlockAudioContext } from "./audio";
+import { movementFromAxes, touchLookRotation, type TouchAxes } from "./touch";
 
 export type GameView = {
   phase: "menu" | "countdown" | "racing" | "results";
@@ -73,6 +74,11 @@ export class DragonEscapeRuntime {
   private lastCountdownBeat = 0;
   private nextDragonGrowl = 2;
   private nextWingBeat = 0;
+  private touchMode = false;
+  private touchAxes: TouchAxes = { strafe: 0, forward: 0 };
+  private touchJump = false;
+  private touchSprint = false;
+  private touchLeapQueued = false;
 
   constructor(canvas: HTMLCanvasElement, onView: (view: GameView) => void) {
     this.canvas = canvas;
@@ -80,12 +86,14 @@ export class DragonEscapeRuntime {
   }
 
   mount() {
+    this.touchMode = window.matchMedia("(pointer: coarse)").matches || navigator.maxTouchPoints > 0;
     const app = new pc.Application(this.canvas, {
       keyboard: new pc.Keyboard(window),
       mouse: new pc.Mouse(this.canvas),
       graphicsDeviceOptions: { alpha: false, antialias: true },
     });
     this.app = app;
+    app.graphicsDevice.maxPixelRatio = Math.min(window.devicePixelRatio || 1, this.touchMode ? 1.35 : 2);
     app.setCanvasFillMode(pc.FILLMODE_FILL_WINDOW);
     app.setCanvasResolution(pc.RESOLUTION_AUTO);
     app.start();
@@ -120,9 +128,45 @@ export class DragonEscapeRuntime {
   }
 
   capturePointer() {
-    if (this.phase === "menu" || document.pointerLockElement === this.canvas) return;
+    if (this.touchMode || this.phase === "menu" || document.pointerLockElement === this.canvas) return;
     const request = this.canvas.requestPointerLock?.();
     if (request && "catch" in request) request.catch(() => undefined);
+  }
+
+  setTouchMode(enabled: boolean) {
+    this.touchMode = enabled;
+    if (this.app) {
+      this.app.graphicsDevice.maxPixelRatio = Math.min(window.devicePixelRatio || 1, enabled ? 1.35 : 2);
+      this.app.resizeCanvas();
+    }
+    if (!enabled) {
+      this.touchAxes = { strafe: 0, forward: 0 };
+      this.touchJump = false;
+      this.touchSprint = false;
+      this.touchLeapQueued = false;
+    }
+  }
+
+  setTouchMovement(axes: TouchAxes) {
+    this.touchAxes = {
+      strafe: Math.max(-1, Math.min(1, axes.strafe)),
+      forward: Math.max(-1, Math.min(1, axes.forward)),
+    };
+  }
+
+  setTouchAction(action: "jump" | "sprint", active: boolean) {
+    if (action === "jump") this.touchJump = active;
+    else this.touchSprint = active;
+  }
+
+  triggerTouchLeap() {
+    this.touchLeapQueued = true;
+  }
+
+  touchLook(deltaX: number, deltaY: number) {
+    const rotation = touchLookRotation(this.yaw, this.pitch, deltaX, deltaY);
+    this.yaw = rotation.yaw;
+    this.pitch = rotation.pitch;
   }
 
   setMuted(muted: boolean) {
@@ -285,6 +329,9 @@ export class DragonEscapeRuntime {
     this.lastCountdownBeat = 0;
     this.nextDragonGrowl = 2;
     this.nextWingBeat = 0;
+    this.touchAxes = { strafe: 0, forward: 0 };
+    this.touchJump = false;
+    this.touchLeapQueued = false;
     this.rivals.forEach((rival) => { rival.finished = false; rival.entity.enabled = true; });
   }
 
@@ -316,7 +363,7 @@ export class DragonEscapeRuntime {
     const app = this.app!;
     const skyColor = new pc.Color(0.035, 0.028, 0.065);
     const camera = new pc.Entity("RunnerCamera");
-    camera.addComponent("camera", { clearColor: skyColor, farClip: 340, fov: 76 });
+    camera.addComponent("camera", { clearColor: skyColor, farClip: this.touchMode ? 280 : 340, fov: 76 });
     camera.camera!.toneMapping = pc.TONEMAP_ACES;
     app.root.addChild(camera);
     this.camera = camera;
@@ -334,8 +381,8 @@ export class DragonEscapeRuntime {
       color: new pc.Color(1, 0.72, 0.52),
       intensity: 2.15,
       castShadows: true,
-      shadowDistance: 95,
-      shadowResolution: 2048,
+      shadowDistance: this.touchMode ? 68 : 95,
+      shadowResolution: this.touchMode ? 1024 : 2048,
       shadowBias: 0.18,
       normalOffsetBias: 0.055,
     });
@@ -382,7 +429,8 @@ export class DragonEscapeRuntime {
     lava.setPosition(40, -18.5, 110);
     app.root.addChild(lava);
 
-    for (let i = 0; i < 48; i++) {
+    const emberCount = this.touchMode ? 24 : 48;
+    for (let i = 0; i < emberCount; i++) {
       const ember = new pc.Entity(`ember-${i}`);
       ember.addComponent("render", { type: "sphere", material: materials.ember });
       const size = 0.025 + (i % 5) * 0.018;
@@ -415,7 +463,7 @@ export class DragonEscapeRuntime {
 
   private loadPrototypeModels() {
     this.loadContainer(COURSE.model, (resource) => {
-      const environment = resource.instantiateRenderEntity({ castShadows: true, receiveShadows: true });
+      const environment = resource.instantiateRenderEntity({ castShadows: !this.touchMode, receiveShadows: true });
       environment.name = `${COURSE.name} schematic environment`;
       const transform = COURSE.modelTransform;
       environment.setLocalScale(transform.scale, transform.scale, transform.scale);
@@ -435,7 +483,7 @@ export class DragonEscapeRuntime {
       mapMaterial.useTonemap = true;
       mapMaterial.update();
       for (const render of environment.findComponents("render")) {
-        render.castShadows = true;
+        render.castShadows = !this.touchMode;
         render.receiveShadows = true;
         for (const meshInstance of render.meshInstances) {
           meshInstance.material = mapMaterial;
@@ -525,17 +573,20 @@ export class DragonEscapeRuntime {
   }
 
   private updateInput() {
+    const touch = movementFromAxes(this.touchAxes);
+    const keyboardLeapDown = this.keys.has("KeyQ");
     this.input = {
-      forward: this.keys.has("KeyW") || this.keys.has("ArrowUp"),
-      back: this.keys.has("KeyS") || this.keys.has("ArrowDown"),
-      left: this.keys.has("KeyA"),
-      right: this.keys.has("KeyD"),
-      jump: this.keys.has("Space"),
-      sprint: this.keys.has("ShiftLeft") || this.keys.has("ShiftRight"),
-      leap: this.keys.has("KeyQ") && !this.leapWasDown,
+      forward: touch.forward || this.keys.has("KeyW") || this.keys.has("ArrowUp"),
+      back: touch.back || this.keys.has("KeyS") || this.keys.has("ArrowDown"),
+      left: touch.left || this.keys.has("KeyA"),
+      right: touch.right || this.keys.has("KeyD"),
+      jump: this.touchJump || this.keys.has("Space"),
+      sprint: this.touchSprint || this.keys.has("ShiftLeft") || this.keys.has("ShiftRight"),
+      leap: this.touchLeapQueued || (keyboardLeapDown && !this.leapWasDown),
       yaw: this.yaw,
     };
-    this.leapWasDown = this.keys.has("KeyQ");
+    this.touchLeapQueued = false;
+    this.leapWasDown = keyboardLeapDown;
   }
 
   private updateOffline(dt: number) {

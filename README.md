@@ -2,15 +2,18 @@
 
 A browser-first, first-person parkour race against an accelerating dragon. The route collapses behind the field as the dragon destroys authored breakable terrain.
 
+Play the current public test at [dragon-escape-playtest.maximooch.chatgpt.site](https://dragon-escape-playtest.maximooch.chatgpt.site/).
+
 ## Included
 
-- One complete course: **Ashen Causeway**
-- First-person mouse look, WASD movement, jumping, sprinting, and an eight-second leap
+- One playable owned test course: **Salto**
+- First-person mouse/touch look, keyboard or virtual-stick movement, jumping, sprinting, and an eight-second leap
 - Countdown, checkpoints, course progress, placement, elimination, spectating, results, and rematch flow
 - Procedural low-poly visuals and synthesized sound; no borrowed game assets
 - Offline demo rivals when a match server is unavailable
 - Colyseus public-room server with server-side movement, collision, dragon, destruction, and match state
 - Shared TypeScript simulation with automated rule tests
+- Responsive desktop and mobile HUD, mobile safe-area handling, and a reduced mobile rendering budget
 
 ## Run locally
 
