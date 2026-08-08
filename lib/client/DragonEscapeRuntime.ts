@@ -314,16 +314,55 @@ export class DragonEscapeRuntime {
 
   private buildWorld() {
     const app = this.app!;
+    const skyColor = new pc.Color(0.035, 0.028, 0.065);
     const camera = new pc.Entity("RunnerCamera");
-    camera.addComponent("camera", { clearColor: new pc.Color(0.025, 0.02, 0.045), farClip: 230, fov: 76 });
+    camera.addComponent("camera", { clearColor: skyColor, farClip: 340, fov: 76 });
+    camera.camera!.toneMapping = pc.TONEMAP_ACES;
     app.root.addChild(camera);
     this.camera = camera;
 
-    const sun = new pc.Entity("Moonlight");
-    sun.addComponent("light", { type: "directional", color: new pc.Color(0.62, 0.72, 1), intensity: 1.7, castShadows: true });
-    sun.setEulerAngles(52, 28, 0);
-    app.root.addChild(sun);
-    app.scene.ambientLight = new pc.Color(0.18, 0.16, 0.27);
+    camera.camera!.gammaCorrection = pc.GAMMA_SRGB;
+    app.scene.exposure = 1.12;
+    app.scene.ambientLight = new pc.Color(0.34, 0.31, 0.43);
+    app.scene.fog = pc.FOG_EXP2;
+    app.scene.fogColor = skyColor;
+    app.scene.fogDensity = 0.0018;
+
+    const key = new pc.Entity("Warm key");
+    key.addComponent("light", {
+      type: "directional",
+      color: new pc.Color(1, 0.72, 0.52),
+      intensity: 2.15,
+      castShadows: true,
+      shadowDistance: 95,
+      shadowResolution: 2048,
+      shadowBias: 0.18,
+      normalOffsetBias: 0.055,
+    });
+    key.setEulerAngles(48, -32, 0);
+    app.root.addChild(key);
+
+    const fill = new pc.Entity("Cool fill");
+    fill.addComponent("light", { type: "directional", color: new pc.Color(0.28, 0.55, 1), intensity: 1.15, castShadows: false });
+    fill.setEulerAngles(-28, 152, 0);
+    app.root.addChild(fill);
+
+    const rim = new pc.Entity("Ember rim");
+    rim.addComponent("light", { type: "directional", color: new pc.Color(1, 0.16, 0.035), intensity: 0.72, castShadows: false });
+    rim.setEulerAngles(18, -142, 0);
+    app.root.addChild(rim);
+
+    for (const [index, position] of [[18, -8, 48], [72, 4, 122], [68, 24, 194]] as const) {
+      const glow = new pc.Entity(`Lava bounce ${index}`);
+      glow.addComponent("light", { type: "omni", color: new pc.Color(1, 0.12, 0.025), intensity: 1.35, range: 62, castShadows: false });
+      glow.setPosition(position[0], position[1], position[2]);
+      app.root.addChild(glow);
+    }
+
+    const beacon = new pc.Entity("Beacon glow");
+    beacon.addComponent("light", { type: "omni", color: new pc.Color(0.18, 1, 0.92), intensity: 2.1, range: 46, castShadows: false });
+    beacon.setPosition(COURSE.finish.x, COURSE.finish.y + 2, COURSE.finish.z);
+    app.root.addChild(beacon);
 
     const materials = {
       basalt: this.material(new pc.Color(0.09, 0.08, 0.12), new pc.Color(0.04, 0.02, 0.06)),
@@ -338,7 +377,7 @@ export class DragonEscapeRuntime {
     }
 
     const lava = new pc.Entity("CinderSea");
-    lava.addComponent("render", { type: "box", material: this.material(new pc.Color(0.18, 0.015, 0.01), new pc.Color(1, 0.055, 0.005)) });
+    lava.addComponent("render", { type: "box", material: this.material(new pc.Color(0.075, 0.008, 0.004), new pc.Color(0.56, 0.026, 0.006)) });
     lava.setLocalScale(180, 0.35, 330);
     lava.setPosition(40, -18.5, 110);
     app.root.addChild(lava);
@@ -376,12 +415,32 @@ export class DragonEscapeRuntime {
 
   private loadPrototypeModels() {
     this.loadContainer(COURSE.model, (resource) => {
-      const environment = resource.instantiateRenderEntity({ castShadows: false, receiveShadows: true });
+      const environment = resource.instantiateRenderEntity({ castShadows: true, receiveShadows: true });
       environment.name = `${COURSE.name} schematic environment`;
       const transform = COURSE.modelTransform;
       environment.setLocalScale(transform.scale, transform.scale, transform.scale);
       environment.setEulerAngles(0, transform.yaw, 0);
       environment.setPosition(transform.x, transform.y, transform.z);
+      const mapMaterial = new pc.StandardMaterial();
+      mapMaterial.name = "Salto voxel terrain";
+      mapMaterial.diffuse = pc.Color.WHITE;
+      mapMaterial.diffuseVertexColor = true;
+      mapMaterial.diffuseVertexColorChannel = "rgb";
+      mapMaterial.vertexColorGamma = true;
+      mapMaterial.ambient = pc.Color.WHITE;
+      mapMaterial.useMetalness = false;
+      mapMaterial.specular = new pc.Color(0.04, 0.04, 0.055);
+      mapMaterial.gloss = 0.12;
+      mapMaterial.useSkybox = false;
+      mapMaterial.useTonemap = true;
+      mapMaterial.update();
+      for (const render of environment.findComponents("render")) {
+        render.castShadows = true;
+        render.receiveShadows = true;
+        for (const meshInstance of render.meshInstances) {
+          meshInstance.material = mapMaterial;
+        }
+      }
       this.app?.root.addChild(environment);
     });
 

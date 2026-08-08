@@ -81,7 +81,7 @@ export function GameClient() {
 
       {view.phase === "menu" && (
         <section className="menu-panel">
-          <p className="eyebrow">PUBLIC PLAYTEST // BUILD 003</p>
+          <p className="eyebrow">PUBLIC PLAYTEST // BUILD 004</p>
           <h1>OUTRUN<br /><em>THE END.</em></h1>
           <p className="intro">Salto is collapsing. Climb the floating archipelago before the dragon tears it from the sky.</p>
           <label className="name-field">

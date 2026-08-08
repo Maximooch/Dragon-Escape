@@ -2,8 +2,8 @@
 """Build lightweight GLB assets for the prototype.
 
 Install tooling with: python -m pip install nbtlib numpy trimesh
-The schematic output is intentionally downsampled and surface-only. It is a
-visual reference mesh, not the authoritative gameplay collision map.
+The schematic output is surface-only and can optionally be downsampled. It is
+a visual reference mesh, not the authoritative gameplay collision map.
 """
 
 from __future__ import annotations
@@ -11,10 +11,95 @@ from __future__ import annotations
 import argparse
 import json
 from pathlib import Path
+import struct
 
 import nbtlib
 import numpy as np
 import trimesh
+
+
+GLB_JSON_CHUNK = 0x4E4F534A
+GLB_BIN_CHUNK = 0x004E4942
+
+
+def export_glb_with_material(scene: trimesh.Scene, material_name: str, *, quantize_normals: bool = False) -> bytes:
+    """Export a GLB with an explicit neutral, rough material.
+
+    Trimesh deliberately omits a material for color-only meshes. Vertex colors
+    are still valid glTF in that case, but an explicit material keeps other
+    importers from choosing their own gloss/metalness defaults.
+    """
+    payload = trimesh.exchange.gltf.export_glb(scene)
+    magic, version, total_length = struct.unpack_from("<4sII", payload, 0)
+    if magic != b"glTF" or version != 2 or total_length != len(payload):
+        raise ValueError("trimesh returned an invalid GLB")
+
+    offset = 12
+    chunks: list[tuple[int, bytes]] = []
+    while offset < total_length:
+        length, chunk_type = struct.unpack_from("<II", payload, offset)
+        offset += 8
+        chunks.append((chunk_type, payload[offset:offset + length]))
+        offset += length
+
+    document = json.loads(chunks[0][1].decode("utf-8").rstrip("\x00 "))
+    document["materials"] = [{
+        "name": material_name,
+        "pbrMetallicRoughness": {
+            "baseColorFactor": [1.0, 1.0, 1.0, 1.0],
+            "metallicFactor": 0.0,
+            "roughnessFactor": 0.92,
+        },
+    }]
+    for mesh in document.get("meshes", []):
+        for primitive in mesh.get("primitives", []):
+            primitive["material"] = 0
+
+    if quantize_normals:
+        # A full float normal costs 12 bytes per vertex. Axis-aligned voxel
+        # normals are losslessly represented for rendering as normalized signed
+        # bytes, reducing Salto by roughly 3 MB. glTF requires the standard
+        # KHR_mesh_quantization declaration for this NORMAL representation.
+        primitive = document["meshes"][0]["primitives"][0]
+        normal_accessor_index = primitive["attributes"]["NORMAL"]
+        normal_accessor = document["accessors"][normal_accessor_index]
+        normal_view_index = normal_accessor["bufferView"]
+        normal_view = document["bufferViews"][normal_view_index]
+        bin_chunk_index = next(index for index, (kind, _) in enumerate(chunks) if kind == GLB_BIN_CHUNK)
+        binary = chunks[bin_chunk_index][1]
+        start = normal_view.get("byteOffset", 0) + normal_accessor.get("byteOffset", 0)
+        old_length = normal_view["byteLength"]
+        count = normal_accessor["count"]
+        source_normals = np.frombuffer(binary, dtype="<f4", count=count * 3, offset=start).reshape(count, 3)
+        packed_normals = np.zeros((count, 4), dtype=np.int8)
+        packed_normals[:, :3] = np.rint(np.clip(source_normals, -1.0, 1.0) * 127).astype(np.int8)
+        replacement = packed_normals.tobytes()
+        old_end = normal_view.get("byteOffset", 0) + old_length
+        new_binary = binary[:normal_view.get("byteOffset", 0)] + replacement + binary[old_end:]
+        delta = len(replacement) - old_length
+        for index, view in enumerate(document["bufferViews"]):
+            if index != normal_view_index and view.get("byteOffset", 0) >= old_end:
+                view["byteOffset"] = view.get("byteOffset", 0) + delta
+        normal_view["byteLength"] = len(replacement)
+        normal_view["byteStride"] = 4
+        normal_accessor["componentType"] = 5120  # signed byte
+        normal_accessor["normalized"] = True
+        normal_accessor.pop("max", None)
+        normal_accessor.pop("min", None)
+        document["buffers"][normal_view["buffer"]]["byteLength"] += delta
+        document.setdefault("extensionsUsed", []).append("KHR_mesh_quantization")
+        document.setdefault("extensionsRequired", []).append("KHR_mesh_quantization")
+        chunks[bin_chunk_index] = (GLB_BIN_CHUNK, new_binary)
+
+    json_payload = json.dumps(document, separators=(",", ":")).encode("utf-8")
+    json_payload += b" " * ((-len(json_payload)) % 4)
+    chunks[0] = (GLB_JSON_CHUNK, json_payload)
+    output_length = 12 + sum(8 + len(data) for _, data in chunks)
+    output = bytearray(struct.pack("<4sII", magic, version, output_length))
+    for chunk_type, data in chunks:
+        output.extend(struct.pack("<II", len(data), chunk_type))
+        output.extend(data)
+    return bytes(output)
 
 
 def add_box(scene: trimesh.Scene, name: str, size, position, color) -> None:
@@ -40,7 +125,7 @@ def build_player(path: Path) -> None:
     add_box(scene, "leg-right", (0.28, 0.75, 0.31), (0.20, 0.25, 0), cloth)
     add_box(scene, "boot-left", (0.31, 0.20, 0.43), (-0.20, -0.09, -0.05), boot)
     add_box(scene, "boot-right", (0.31, 0.20, 0.43), (0.20, -0.09, -0.05), boot)
-    path.write_bytes(trimesh.exchange.gltf.export_glb(scene))
+    path.write_bytes(export_glb_with_material(scene, "Runner voxel character"))
 
 
 def build_dragon(path: Path) -> None:
@@ -66,33 +151,69 @@ def build_dragon(path: Path) -> None:
         add_box(scene, f"tail-{i}", (1.9 - i * 0.28, 1.8 - i * 0.24, 3.1), (0, 0.1, -9.3 - i * 2.65), scale)
     for z in (-1.8, -4.2, -6.6, -9.2):
         add_box(scene, f"spine-{z}", (0.45, 1.0, 0.65), (0, 2.15, z), ridge)
-    path.write_bytes(trimesh.exchange.gltf.export_glb(scene))
+    path.write_bytes(export_glb_with_material(scene, "Cinder Wyrm voxel character"))
 
 
-def block_color(block_id: int) -> tuple[int, int, int, int]:
+DYE_PALETTE = (
+    (221, 224, 222, 255), (208, 99, 39, 255), (173, 73, 180, 255), (77, 142, 174, 255),
+    (221, 179, 50, 255), (106, 174, 54, 255), (211, 112, 143, 255), (67, 68, 76, 255),
+    (143, 148, 151, 255), (42, 127, 142, 255), (113, 65, 151, 255), (49, 67, 142, 255),
+    (109, 72, 50, 255), (58, 102, 58, 255), (178, 55, 48, 255), (28, 30, 38, 255),
+)
+
+
+def shade_srgb(color: tuple[int, int, int, int], shade: float) -> tuple[int, int, int, int]:
+    """Apply lighting in linear space while storing glTF vertex colors as sRGB."""
+    output = []
+    for byte in color[:3]:
+        encoded = byte / 255.0
+        linear = encoded / 12.92 if encoded <= 0.04045 else ((encoded + 0.055) / 1.055) ** 2.4
+        linear = min(1.0, max(0.0, linear * shade))
+        encoded = linear * 12.92 if linear <= 0.0031308 else 1.055 * linear ** (1 / 2.4) - 0.055
+        output.append(round(encoded * 255))
+    return tuple(output) + (color[3],)
+
+
+def block_color(block_id: int, data: int) -> tuple[int, int, int, int]:
+    if block_id in {35, 95, 159, 160, 171}:
+        return DYE_PALETTE[data & 15]
     if block_id in {10, 11, 51}:  # lava and fire
         return (255, 55, 5, 255)
     if block_id in {87, 88, 112}:  # netherrack, soul sand, nether brick
-        return (71, 24, 27, 255)
+        return (94, 31, 34, 255)
     if block_id in {8, 9, 79}:
-        return (20, 105, 138, 255)
+        return (28, 121, 159, 255)
     if block_id in {2, 31, 32, 37, 38, 106}:
-        return (53, 103, 56, 255)
+        return (51, 126, 78, 255)
+    if block_id == 18:
+        return (39, 113, 77, 255)
+    if block_id in {1, 4, 43, 44, 67, 98, 109, 139}:
+        return (91, 93, 116, 255)
+    if block_id in {3, 60}:
+        return (102, 72, 56, 255)
     if block_id in {12, 24}:
-        return (154, 112, 70, 255)
-    if block_id in {17, 5, 53, 85}:
-        return (91, 57, 37, 255)
+        return (177, 133, 77, 255)
+    if block_id in {17, 5, 53, 85, 188}:
+        return (122, 78, 50, 255)
+    if block_id == 82:
+        return (114, 129, 143, 255)
     if block_id in {78, 80}:
-        return (205, 220, 226, 255)
-    return (54, 49, 61, 255)
+        return (211, 226, 232, 255)
+    if block_id in {41, 42, 57, 133, 138}:
+        return (72, 211, 203, 255)
+    if block_id in {16, 173}:
+        return (34, 35, 46, 255)
+    return (82, 78, 99, 255)
 
 
 def load_coarse_schematic(source: Path, factor: int) -> np.ndarray:
     root = nbtlib.load(source, gzipped=True)
     width, height, length = (int(root[key]) for key in ("Width", "Height", "Length"))
-    fine = np.frombuffer(bytes(root["Blocks"]), dtype=np.uint8).reshape((height, length, width))
+    block_ids = np.frombuffer(bytes(root["Blocks"]), dtype=np.uint8).reshape((height, length, width)).astype(np.uint16)
+    block_data = np.frombuffer(bytes(root["Data"]), dtype=np.uint8).reshape((height, length, width)).astype(np.uint16) & 15
+    fine = block_ids * 16 + block_data
     coarse_shape = tuple((value + factor - 1) // factor for value in fine.shape)
-    padded = np.zeros(tuple(value * factor for value in coarse_shape), dtype=np.uint8)
+    padded = np.zeros(tuple(value * factor for value in coarse_shape), dtype=np.uint16)
     padded[:height, :length, :width] = fine
     grouped = padded.reshape(coarse_shape[0], factor, coarse_shape[1], factor, coarse_shape[2], factor)
     return grouped.max(axis=(1, 3, 5))
@@ -102,6 +223,7 @@ def build_schematic(source: Path, path: Path, factor: int) -> np.ndarray:
     coarse = load_coarse_schematic(source, factor)
 
     vertices: list[tuple[float, float, float]] = []
+    normals: list[tuple[float, float, float]] = []
     faces: list[tuple[int, int, int]] = []
     colors: list[tuple[int, int, int, int]] = []
     directions = (
@@ -112,24 +234,68 @@ def build_schematic(source: Path, path: Path, factor: int) -> np.ndarray:
         ((0, 0, 1), ((1, 0, 1), (1, 1, 1), (0, 1, 1), (0, 0, 1))),
         ((0, 0, -1), ((0, 0, 0), (0, 1, 0), (1, 1, 0), (1, 0, 0))),
     )
-    occupied = np.argwhere(coarse != 0)
+    block_ids = coarse >> 4
+    occupied = np.argwhere(block_ids != 0)
     ch, cl, cw = coarse.shape
+
+    def occupied_at(x: int, y: int, z: int) -> bool:
+        return 0 <= x < cw and 0 <= y < ch and 0 <= z < cl and block_ids[y, z, x] != 0
+
+    face_shades = {
+        (1, 0, 0): 0.84,
+        (-1, 0, 0): 0.72,
+        (0, 1, 0): 1.15,
+        (0, -1, 0): 0.52,
+        (0, 0, 1): 0.78,
+        (0, 0, -1): 0.94,
+    }
     for y, z, x in occupied:
-        color = block_color(int(coarse[y, z, x]))
+        packed = int(coarse[y, z, x])
+        color = block_color(packed >> 4, packed & 15)
         for (dx, dy, dz), corners in directions:
             nx, ny, nz = x + dx, y + dy, z + dz
-            if 0 <= nx < cw and 0 <= ny < ch and 0 <= nz < cl and coarse[ny, nz, nx] != 0:
+            if occupied_at(nx, ny, nz):
                 continue
             base = len(vertices)
+            ao_levels: list[int] = []
             for ox, oy, oz in corners:
                 vertices.append((float(x + ox - cw / 2), float(y + oy), float(z + oz)))
-                colors.append(color)
-            faces.extend(((base, base + 1, base + 2), (base, base + 2, base + 3)))
+                normals.append((float(dx), float(dy), float(dz)))
+                outside = [x + dx, y + dy, z + dz]
+                if dx:
+                    axes = ((1, -1 if oy == 0 else 1), (2, -1 if oz == 0 else 1))
+                elif dy:
+                    axes = ((0, -1 if ox == 0 else 1), (2, -1 if oz == 0 else 1))
+                else:
+                    axes = ((0, -1 if ox == 0 else 1), (1, -1 if oy == 0 else 1))
+                side_a = outside.copy()
+                side_b = outside.copy()
+                corner = outside.copy()
+                side_a[axes[0][0]] += axes[0][1]
+                side_b[axes[1][0]] += axes[1][1]
+                corner[axes[0][0]] += axes[0][1]
+                corner[axes[1][0]] += axes[1][1]
+                a = occupied_at(side_a[0], side_a[1], side_a[2])
+                b = occupied_at(side_b[0], side_b[1], side_b[2])
+                c = occupied_at(corner[0], corner[1], corner[2])
+                ao = 0 if a and b else 3 - int(a) - int(b) - int(c)
+                ao_levels.append(ao)
+                shade = face_shades[(dx, dy, dz)] * (0.60 + ao * 0.1333)
+                colors.append(shade_srgb(color, shade))
+            if ao_levels[0] + ao_levels[2] > ao_levels[1] + ao_levels[3]:
+                faces.extend(((base, base + 1, base + 3), (base + 1, base + 2, base + 3)))
+            else:
+                faces.extend(((base, base + 1, base + 2), (base, base + 2, base + 3)))
 
-    mesh = trimesh.Trimesh(vertices=np.asarray(vertices), faces=np.asarray(faces), process=False)
+    mesh = trimesh.Trimesh(
+        vertices=np.asarray(vertices),
+        faces=np.asarray(faces),
+        vertex_normals=np.asarray(normals),
+        process=False,
+    )
     mesh.visual.vertex_colors = np.asarray(colors, dtype=np.uint8)
     scene = trimesh.Scene(mesh)
-    path.write_bytes(trimesh.exchange.gltf.export_glb(scene))
+    path.write_bytes(export_glb_with_material(scene, "Salto voxel terrain", quantize_normals=True))
     print(f"{source.name}: {len(occupied):,} voxels, {len(faces):,} triangles -> {path}")
     return coarse
 
@@ -148,7 +314,8 @@ def build_collision_course(
     # Decorative/non-colliding legacy IDs. Shape-specific blocks such as stairs,
     # slabs, fences, and panes remain conservative full-cube proxies for now.
     non_solid = [0, 6, 8, 9, 10, 11, 31, 32, 37, 38, 39, 40, 50, 51, 55, 59, 63, 65, 66, 68, 69, 75, 76, 77, 78, 83, 106, 131, 132, 143, 171, 175, 176, 177]
-    solid = ~np.isin(coarse, non_solid)
+    block_ids = coarse >> 4
+    solid = ~np.isin(block_ids, non_solid)
 
     start_cx, start_cz = start[0] // factor, start[1] // factor
     finish_cx, finish_cz = finish[0] // factor, finish[1] // factor
@@ -185,7 +352,7 @@ def build_collision_course(
         while y1 < ch and np.all(solid[y1, z:z1, x:x1] & ~visited[y1, z:z1, x:x1]):
             y1 += 1
         visited[y:y1, z:z1, x:x1] = True
-        cuboids.append([x, y, z, x1 - x, y1 - y, z1 - z, int(coarse[y, z, x])])
+        cuboids.append([x, y, z, x1 - x, y1 - y, z1 - z, int(block_ids[y, z, x])])
 
     def kind(block_id: int) -> str:
         if block_id in {87, 88, 112, 173}:

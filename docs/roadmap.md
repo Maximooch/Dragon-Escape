@@ -6,7 +6,7 @@ Dragon Escape should become a browser-first, first-person parkour race that is u
 
 The release target is deliberately focused: one excellent public-race loop, five or six original maps, responsive Quake/Minecraft-inspired movement, a memorable dragon, reliable online play, and instant browser access. Parties, a level editor, alternate modes, and monetization are post-launch candidates rather than launch dependencies.
 
-## Current baseline (Build 003)
+## Current baseline (Build 004)
 
 The MVP already proves the broad loop:
 
@@ -16,11 +16,12 @@ The MVP already proves the broad loop:
 - SaltoFixed is converted at full resolution into a 180k-triangle GLB plus roughly 10k merged 3D collision cuboids, spatially indexed at runtime. Its owned schematic remains prototype/test content.
 - Prototype GLBs exist for the runner and dragon, and the converter emits aligned environment and gameplay outputs from one source transform.
 - A deterministic broadband audio check, dragon roar, and wing beat replace the nearly inaudible sub-bass-only mix; visible UI now reports ready/blocked/muted state.
+- Salto now preserves legacy block metadata and renders with an explicit vertex-color material, flat normals, directional face shading, per-corner voxel AO, ACES tone mapping, and a warm-key/cool-fill/ember-rim lighting rig.
 - Mouse capture, race HUD, results, rematch, and a small rule-test suite exist.
 
 The main gaps are equally concrete:
 
-- Build 003 audio still needs physical confirmation in the originally affected browser. Automated WebKit proved the context was running and identified the old mix as too quiet/sub-heavy, but only a human can certify actual output hardware.
+- Sound is now physically confirmed in the originally affected browser; longer rematch/background-tab soak testing remains.
 - Salto's route orientation, spawn, finish, scale, renderer, and full 3D collision now agree, but its provisional checkpoints, bot/dragon path, special block shapes, and intended line still require manual route QA.
 - Course rules, collision, client presentation, audio, bots, and networking converge in one large runtime and a single global `COURSE` constant.
 - Online reconciliation is prototype-grade. The match service, reconnect behavior, deployment, abuse controls, and load characteristics are not production-proven.
