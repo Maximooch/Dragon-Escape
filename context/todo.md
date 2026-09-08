@@ -40,7 +40,46 @@ Use Parcade for:
 - Preserve Parcade's ordinary Leap kit for side-by-side comparison.
 - Avoid adding Mineplex Core or Arcade as runtime dependencies.
 - Add deterministic vector tests and build for Java 8.
-- Perform live A/B testing for any packet-level difference caused by Mineplex's custom velocity reapplication hook, which Parcade's server does not contain.
+- A kit-scoped adaptation of Mineplex's delayed velocity reapplication hook is now implemented; validate final outgoing packets and client trajectories before claiming exact parity.
+
+## Mineplex Leap Parity
+
+### Current baseline
+
+- [x] Preserve the Mineplex Leaper launch constants, grounded boost, and four charges while keeping the ordinary Parcade Leap kit unchanged.
+- [x] Fix the menu-name lookup falling back to None/Parkour: retain the compatible `Leapclassic` label with Mineplex lore.
+- [x] Handle Spigot 1.8 right-click-air events despite their default cancelled state, without uncancelling vanilla actions.
+- [x] Preserve intended velocity until the delayed `PlayerVelocityEvent`, following the local reference's `UtilAction` / `VelocityFix` path, with one-shot consumption and cleanup.
+- [x] Pass vector tests and 31 isolated server checks, including kit lookup, axe delivery/reset, right-click dispatch, charges, cooldown blocking, usable-block exclusion, and delayed velocity restoration.
+- User playtesting reports roughly 80–90% similarity. This is subjective feedback, not a measured parity percentage. Final packet and client trajectory equivalence remain unverified.
+
+### Next investigations, in priority order
+
+1. [ ] **Measure reference versus port velocity delivery and trajectories.**
+   - Use `mineplex-reborn-dev` as the behavioral reference: `KitLeaper`, `PerkLeap`, `UtilAction`, `VelocityFix`, `UtilEnt`, and `UtilBlock`.
+   - Run the same client with identical starting position, yaw/pitch, and movement state against both implementations.
+   - Capture the activation vector, delayed velocity-event state, final outgoing velocity packet, and subsequent per-tick player positions.
+   - Start with horizontal standing and airborne leaps; then test sprinting, downward aim, and steep upward aim.
+   - Distinguish different launch packets from identical launches followed by different movement. Do not tune strength to compensate for an unmeasured timing problem.
+2. [ ] **Match recharge timing precisely (confirmed discrepancy).**
+   - Replace the Mineplex kit's use of Parcade's shared once-per-20-ticks countdown with timestamp-based recharge matching the reference's 8,000 ms interval.
+   - Test activation near timer boundaries and under reduced TPS; preserve charges and solo reset behavior.
+   - Keep the ordinary Parcade kit unchanged. This affects repeat-leap timing, not the trajectory of an individual leap.
+3. [ ] **Verify grounded detection at collision boundaries.**
+   - Compare full blocks, block edges, slabs, stairs, fences, and other partial-height blocks.
+   - Test the tick immediately after jumping or walking off an edge.
+   - Verify both the grounded decision and resulting 0.2 vertical boost against the reference rather than relying on visual similarity.
+4. [ ] **Match surrounding movement conditions if launch packets already agree.**
+   - Compare server builds/patches, sprint state, potion effects, client version/mods, and collision geometry.
+   - Measure tick rate, latency, packet ordering, and other plugins changing velocity or teleporting players.
+   - Treat these as hypotheses to test, not established defects.
+
+### Acceptance criteria
+
+- [ ] Define trajectory tolerances and the controlled test matrix before claiming full parity.
+- [ ] Demonstrate matching outgoing launch packets and trajectories within those tolerances under identical conditions.
+- [ ] Demonstrate matching cooldown, charge consumption, and reset behavior separately.
+- [ ] Record reference-versus-port results and remaining runtime adaptations. Passing tests against our own implementation alone is not evidence of exact Mineplex equivalence.
 
 ## Checkpoint 2 — DE Solo workflow
 

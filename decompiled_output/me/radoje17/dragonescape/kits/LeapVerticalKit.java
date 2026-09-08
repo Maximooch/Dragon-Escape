@@ -30,6 +30,7 @@ public class LeapVerticalKit extends Kit {
    private static final int MAX_USES = MineplexLeapPhysics.MAX_USES;
    private static LeapVerticalKit instance;
    private final Map<Player, Integer> uses = new WeakHashMap<>();
+   private final Map<Player, Vector> pendingVelocity = new WeakHashMap<>();
 
    public LeapVerticalKit() {
       super(KitType.LEAPCLASSIC, Material.IRON_AXE, Lang.getList("leap-vertical-lore"));
@@ -42,7 +43,9 @@ public class LeapVerticalKit extends Kit {
 
       this.menuItem = new ItemStack(Material.IRON_AXE);
       ItemMeta menuMeta = this.menuItem.getItemMeta();
-      menuMeta.setDisplayName(ChatColor.WHITE + "Mineplex Leap");
+      // The legacy selector and leaderboards resolve kits by this display name.
+      // Keep it aligned with LEAPCLASSIC; describe Mineplex behavior in the lore.
+      menuMeta.setDisplayName(ChatColor.WHITE + "Leapclassic");
       List<String> lore = new ArrayList<>();
       for (String line : Lang.getList("leap-vertical-lore")) {
          lore.add(ChatColor.WHITE + line);
@@ -53,6 +56,7 @@ public class LeapVerticalKit extends Kit {
 
    @Override
    public void giveItems(Player player) {
+      this.pendingVelocity.remove(player);
       this.uses.put(player, MAX_USES);
       player.getInventory().setItem(0, createLeapAxe(MAX_USES));
       player.setExp(0.99F);
@@ -65,7 +69,9 @@ public class LeapVerticalKit extends Kit {
       }
    }
 
-   @EventHandler(ignoreCancelled = true)
+   // Spigot 1.8 marks air interactions cancelled because there is no block to use.
+   // Like the original Leap kit, handle these without uncancelling vanilla actions.
+   @EventHandler
    @Override
    public void event(PlayerInteractEvent event) {
       Player player = event.getPlayer();
@@ -97,6 +103,14 @@ public class LeapVerticalKit extends Kit {
          MineplexLeapPhysics.isGrounded(player)
       );
       player.setFallDistance(0.0F);
+      // Mineplex UtilAction + VelocityFix preserve the vector until packet dispatch.
+      final Vector intended = velocity.clone();
+      this.pendingVelocity.put(player, intended);
+      org.bukkit.Bukkit.getScheduler().runTaskLater(DragonEscape.getInstance(), () -> {
+         if (this.pendingVelocity.get(player) == intended) {
+            this.pendingVelocity.remove(player);
+         }
+      }, 20L);
       player.setVelocity(velocity);
       player.getWorld().playEffect(player.getLocation(), Effect.BLAZE_SHOOT, 8);
 
@@ -113,9 +127,21 @@ public class LeapVerticalKit extends Kit {
       );
    }
 
+   @EventHandler(priority = org.bukkit.event.EventPriority.LOWEST)
+   public void fixVelocity(org.bukkit.event.player.PlayerVelocityEvent event) {
+      Vector intended = this.pendingVelocity.remove(event.getPlayer());
+      if (intended != null && !event.isCancelled()
+         && KitManager.getKit(event.getPlayer()) == this
+         && DragonEscape.getInstance().getGameManager().getGame(event.getPlayer()) != null) {
+         // Match Mineplex VelocityFix: update entity motion before tracker packet creation.
+         event.getPlayer().setVelocity(intended);
+      }
+   }
+
    @EventHandler
    public void removeDataOnQuit(PlayerQuitEvent event) {
       this.uses.remove(event.getPlayer());
+      this.pendingVelocity.remove(event.getPlayer());
    }
 
    private static ItemStack createLeapAxe(int amount) {
