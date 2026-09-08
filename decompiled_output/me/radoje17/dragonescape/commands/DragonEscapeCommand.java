@@ -33,21 +33,10 @@ public class DragonEscapeCommand implements CommandExecutor, TabCompleter {
       if (sender.hasPermission("leap") && args.length > 0 && args[0].equalsIgnoreCase("leap")) {
          if (args.length == 1) {
             sender.sendMessage("/dea leap cooldown <value>");
-            sender.sendMessage("/dea leap mult <value>");
-            sender.sendMessage("/dea leap horizontal <value>");
-            sender.sendMessage("/dea leap y <value>");
-            sender.sendMessage("/dea leap yAbove <value>");
             return false;
-         } else if (!args[1].equalsIgnoreCase("cooldown")
-            && !args[1].equalsIgnoreCase("mult")
-            && !args[1].equalsIgnoreCase("horizontal")
-            && !args[1].equalsIgnoreCase("y")
-            && !args[1].equalsIgnoreCase("yAbove")) {
-            sender.sendMessage("/dea cooldown <value>");
-            sender.sendMessage("/dea mult <value>");
-            sender.sendMessage("/dea horizontal <value>");
-            sender.sendMessage("/dea y <value>");
-            sender.sendMessage("/dea yAbove <value>");
+         } else if (!args[1].equalsIgnoreCase("cooldown")) {
+            sender.sendMessage("Mineplex Leap uses fixed reference physics; only its cooldown is configurable.");
+            sender.sendMessage("/dea leap cooldown <value>");
             return false;
          } else if (args.length == 2) {
             sender.sendMessage("/dea leap " + args[1].toLowerCase() + " <value>");
@@ -55,7 +44,7 @@ public class DragonEscapeCommand implements CommandExecutor, TabCompleter {
          } else {
             try {
                DragonEscape.getConfiguration()
-                  .set("kits.leapclassic." + (args[1].equalsIgnoreCase("yabove") ? "yAbove" : args[1].toLowerCase()), Double.parseDouble(args[2]));
+                  .set("kits.leapclassic.cooldown", Double.parseDouble(args[2]));
                DragonEscape.getInstance().saveConfig();
                LeapVerticalKit.update();
             } catch (Exception var11) {

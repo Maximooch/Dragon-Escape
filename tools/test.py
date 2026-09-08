@@ -26,4 +26,4 @@ with (sandbox/'test.log').open('w') as log:
  result=subprocess.run([java,'-Xms256M','-Xmx2G','-jar','spigot.jar','nogui'],cwd=sandbox,stdout=log,stderr=subprocess.STDOUT)
 text=(sandbox/'test.log').read_text(errors='replace')
 print('\n'.join(l for l in text.splitlines() if 'PASS' in l or 'FAILED' in l))
-if result.returncode or 'PERFORMANCE TESTS PASSED: 20' not in text:raise SystemExit('Checks failed: inspect test-runtime/test.log')
+if result.returncode or 'PERFORMANCE TESTS PASSED: 31' not in text:raise SystemExit('Checks failed: inspect test-runtime/test.log')

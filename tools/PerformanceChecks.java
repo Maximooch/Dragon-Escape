@@ -24,6 +24,7 @@ public final class PerformanceChecks extends JavaPlugin implements Runnable {
  public void onEnable() {
   Bukkit.getScheduler().runTaskLater(this, () -> {
    try {
+    checkKitInventory();
     check(ArenaUtils.getCoords()==0,"startup performs no untracked pre-pastes");
     GameManager gm=DragonEscape.getInstance().getGameManager();
     Game g=new Game(); gm.addGameInProgress(4242,g);
@@ -45,6 +46,70 @@ public final class PerformanceChecks extends JavaPlugin implements Runnable {
     Bukkit.getScheduler().runTaskTimer(this,this,1,1);
    } catch(Throwable error){fail(error);}
   },20L);
+ }
+ private void checkKitInventory() throws Exception {
+  // Exercise the exact display-name lookup used by InventoryListener.
+  me.radoje17.dragonescape.kits.Kit kit = me.radoje17.dragonescape.kits.KitManager.getKit("leapclassic");
+  String label = ChatColor.stripColor(kit.getMenuItem().getItemMeta().getDisplayName()).toLowerCase(java.util.Locale.ROOT);
+  check(me.radoje17.dragonescape.kits.KitManager.getKit(label) == kit,
+    "Mineplex menu selection resolves to leapclassic, not the no-kit fallback");
+  net.minecraft.server.v1_8_R3.MinecraftServer server = ((org.bukkit.craftbukkit.v1_8_R3.CraftServer)Bukkit.getServer()).getServer();
+  net.minecraft.server.v1_8_R3.WorldServer world = ((org.bukkit.craftbukkit.v1_8_R3.CraftWorld)Bukkit.getWorld("DE")).getHandle();
+  net.minecraft.server.v1_8_R3.EntityPlayer entity = new net.minecraft.server.v1_8_R3.EntityPlayer(server, world,
+    new com.mojang.authlib.GameProfile(UUID.randomUUID(), "LeapTest"), new net.minecraft.server.v1_8_R3.PlayerInteractManager(world));
+  entity.playerConnection = new net.minecraft.server.v1_8_R3.PlayerConnection(server,
+    new net.minecraft.server.v1_8_R3.NetworkManager(net.minecraft.server.v1_8_R3.EnumProtocolDirection.SERVERBOUND), entity);
+  org.bukkit.entity.Player player = entity.getBukkitEntity();
+  kit.giveItems(player);
+  check(player.getInventory().getItem(0)!=null && player.getInventory().getItem(0).getType()==Material.IRON_AXE && player.getInventory().getItem(0).getAmount()==4,
+    "selected Mineplex kit gives four leap axes in slot zero");
+  player.getInventory().getItem(0).setAmount(1);
+  kit.giveItems(player);
+  check(player.getInventory().getItem(0).getAmount()==4,"solo kit reset replenishes all four axes");
+  Field uses=kit.getClass().getDeclaredField("uses");uses.setAccessible(true);
+  check(((Map<?,?>)uses.get(kit)).get(player).equals(4),"solo kit reset replenishes internal leap charges");
+  me.radoje17.dragonescape.kits.KitManager.setKit(player, kit);
+  GameManager manager=DragonEscape.getInstance().getGameManager();
+  manager.addPlayer(player,new Game());
+  player.getInventory().setHeldItemSlot(0);
+  org.bukkit.event.player.PlayerInteractEvent click = new org.bukkit.event.player.PlayerInteractEvent(player,
+    org.bukkit.event.block.Action.RIGHT_CLICK_AIR,player.getItemInHand(),null,BlockFace.SELF);
+  check(click.isCancelled(),"legacy right-click-air starts cancelled without any protection plugin");
+  // Dispatch through the registered listener so ignoreCancelled is exercised.
+  for(org.bukkit.plugin.RegisteredListener listener:click.getHandlers().getRegisteredListeners()) {
+   if(listener.getListener()==kit)listener.callEvent(click);
+  }
+  check(player.getVelocity().lengthSquared()>0.1,"registered right-click-air handler launches player");
+  org.bukkit.util.Vector intended=player.getVelocity().clone();
+  player.setVelocity(intended.clone().multiply(0.6));
+  org.bukkit.event.player.PlayerVelocityEvent velocityEvent=new org.bukkit.event.player.PlayerVelocityEvent(player,player.getVelocity());
+  for(org.bukkit.plugin.RegisteredListener listener:velocityEvent.getHandlers().getRegisteredListeners()) {
+   if(listener.getListener()==kit)listener.callEvent(velocityEvent);
+  }
+  check(player.getVelocity().distanceSquared(intended)<1e-12,"Mineplex velocity fix restores intended motion at delayed packet event");
+  org.bukkit.util.Vector unrelated=new org.bukkit.util.Vector(0.1,0.2,0.3);
+  player.setVelocity(unrelated);
+  velocityEvent=new org.bukkit.event.player.PlayerVelocityEvent(player,unrelated);
+  for(org.bukkit.plugin.RegisteredListener listener:velocityEvent.getHandlers().getRegisteredListeners()) {
+   if(listener.getListener()==kit)listener.callEvent(velocityEvent);
+  }
+  check(player.getVelocity().distanceSquared(unrelated)<1e-12,"velocity fix is consumed once and leaves subsequent motion alone");
+  check(player.getItemInHand().getAmount()==3 && ((Map<?,?>)uses.get(kit)).get(player).equals(3),
+    "right click consumes exactly one axe and charge");
+  for(org.bukkit.plugin.RegisteredListener listener:click.getHandlers().getRegisteredListeners()) {
+   if(listener.getListener()==kit)listener.callEvent(click);
+  }
+  check(player.getItemInHand().getAmount()==3,"cooldown blocks repeated right click");
+  me.radoje17.dragonescape.kits.KitManager.removeCooldown(player);
+  Block usable=Bukkit.getWorld("DE").getBlockAt(0,200,0);usable.setType(Material.CHEST);
+  org.bukkit.event.player.PlayerInteractEvent chestClick=new org.bukkit.event.player.PlayerInteractEvent(player,
+    org.bukkit.event.block.Action.RIGHT_CLICK_BLOCK,player.getItemInHand(),usable,BlockFace.UP);
+  for(org.bukkit.plugin.RegisteredListener listener:chestClick.getHandlers().getRegisteredListeners()) {
+   if(listener.getListener()==kit)listener.callEvent(chestClick);
+  }
+  check(player.getItemInHand().getAmount()==3,"usable block click does not consume a leap");
+  usable.setType(Material.AIR);
+  manager.getPlayers().remove(player);
  }
  private void check(boolean value,String message) {
   if(!value)throw new AssertionError(message);

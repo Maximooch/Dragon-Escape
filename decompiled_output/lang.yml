@@ -157,8 +157,9 @@ leap-lore:
   - "&fRight click your Axe to lunge into the air"
   - "&fwherever you're looking."
 leap-vertical-lore:
-  - "&fRight click your Axe to lunge into the air"
-  - "&fwherever you're looking."
+  - "&fOriginal Mineplex Dragon Escape leap."
+  - "&fRight click your Axe to leap where you look."
+  - "&fFour charges with an 8 second cooldown."
 auto-rejoin-lore:
   - "&fToggles whether you want to lock this map for this session."
   - "&fWhen toggled on you will automatically"
