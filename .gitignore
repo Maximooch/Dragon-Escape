@@ -1,0 +1,26 @@
+/runtime/
+/runtime-preparing/
+/.local-db.json
+/build/
+/test-runtime/
+__pycache__/
+*.pyc
+*.log
+*.tmp
+.DS_Store
+
+# Private/generated server state
+**/playerdata/
+**/stats/
+**/player_info/
+**/map_stats/
+**/pb_history/
+**/logs/
+**/cache/
+**/sessions/
+*.db
+*.sqlite
+*.sql
+*.lock
+.env
+.env.*

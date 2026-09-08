@@ -1,0 +1,87 @@
+prefix: ''
+permission: parkour.default
+commands:
+  DEBUG:
+    slot: 0
+    material: STONE
+    use-via-console: false
+    extra-permission: parkour.default
+    usage: debug
+    arguments: ''
+  MAINTANANCE:
+    slot: 0
+    material: STONE
+    use-via-console: false
+    extra-permission: parkour.default
+    usage: maintanance
+    arguments: ''
+  TP:
+    slot: 0
+    material: STONE
+    use-via-console: false
+    extra-permission: parkour.default
+    usage: tp
+    arguments: ''
+  MAPINFO:
+    slot: 0
+    material: STONE
+    use-via-console: false
+    extra-permission: parkour.default
+    usage: mapinfo
+    arguments: ''
+  UPDATE:
+    slot: 0
+    material: STONE
+    use-via-console: true
+    extra-permission: parkour.default
+    usage: update
+    arguments: ''
+  RELOAD:
+    slot: 0
+    material: STONE
+    use-via-console: false
+    extra-permission: parkour.default
+    usage: reload
+    arguments: ''
+  BAN:
+    slot: 0
+    material: STONE
+    use-via-console: false
+    extra-permission: parkour.default
+    usage: ban
+    arguments: ''
+  UNBAN:
+    slot: 0
+    material: STONE
+    use-via-console: false
+    extra-permission: parkour.default
+    usage: unban
+    arguments: ''
+  SETLOBBY:
+    slot: 0
+    material: STONE
+    use-via-console: false
+    extra-permission: parkour.default
+    usage: setlobby
+    arguments: ''
+  SETWRBOARD:
+    slot: 0
+    material: STONE
+    use-via-console: false
+    extra-permission: parkour.default
+    usage: setwrboard
+    arguments: ''
+  RELOADWRBOARD:
+    slot: 0
+    material: STONE
+    use-via-console: false
+    extra-permission: parkour.default
+    usage: reloadwrboard
+    arguments: ''
+  COMMANDS:
+    slot: 0
+    material: STONE
+    use-via-console: false
+    extra-permission: parkour.default
+    usage: commands
+    arguments: ''

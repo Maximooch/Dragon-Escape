@@ -1,0 +1,18 @@
+# Huakoe
+
+alias: HUA
+creator: Parota
+impossible-time: 71000
+cubics-reward: 30
+parkour-exp-reward: 100
+time-of-day: 18000
+status: 0
+death-blocks:
+- 166
+- 166
+- 8
+- 9
+- 10
+- 11
+checkpoints:
+- DE;2002;170;1000;89

@@ -1,0 +1,350 @@
+# You need to activate UseOwnLanguageFile to change the messages
+General:
+  Language: English
+  UseOwnLanguageFile: true
+  PlaceOfTheNextPageButton: 1
+  PlaceOfThePreviousPageButton: 9
+  CloseInventoryOnReload: true
+  SendFriendshipInvitationsByHittingAPlayer: false
+  PermissionNoHide: partyandfriends.hide.nohide
+  DisableJump: false
+  DisableFriendMSG: false
+  UseSkeletonSkullForOfflinePlayer: true
+  SoundForHideGUI: true
+  PreventItemsOfGettingOverwritten: true
+  SendFriendRequestByRightClickingAndSneaking: true
+  AutoDownloadDependencies: true
+  SkinHeadDownload: true
+  Compatibility:
+    Warning: Setting any of these settings to false might result in incompatibility to some other plugins
+    ResetCursorOnMenuSwitch: false
+    TicksUntilMessageChannelIsUsedAfterJoin: 10
+  SoundOfHideGUI: NOTE_PIANO
+Design:
+  Lore:
+    ShowServerInLore: true
+    ShowLastOnlineTime: true
+  FriendsMenu:
+    Minimum-Lines: 3
+Commands:
+  FriendsGUI:
+    Enabled: true
+    Names:
+    - friends
+    - f
+  FriendSettings:
+    Enabled: true
+    Names:
+    - friendsettings
+  FriendRequest:
+    Enabled: true
+    Names:
+    - friendrequest
+  Hide:
+    Enabled: false
+    Names:
+    - hidegui
+    - hide
+  PartyGUI:
+    Enabled: false
+    Names:
+    - partygui
+Inventories:
+  ToolBar:
+    HideItem:
+      Use: false
+      Place: 2
+      ItemData: BLAZE_ROD
+      MetaData: 0
+      Text: '&6Hide Players'
+      Permission: ''
+      Cooldown:
+        Time: 0
+        Message: '&7[Friends] &cPlease don''t use this item so often.'
+        ByPassPermission: partyandfriends.hideitem.cooldown
+    ProfileItem:
+      Use: true
+      Place: 8
+      Text: '&5Profile'
+      Permission: ''
+      AlwaysOpenFriendMenu: true
+      UsePlayerSkin: true
+      Cooldown:
+        Time: 0
+        Message: '&7[Friends] &cPlease don''t use this item so often.'
+        ByPassPermission: partyandfriends.profileitem.cooldown
+  EveryMenu:
+    BackItem:
+      Text: '&aBack%LINE_BREAK%&7Return to profile page. %LINE_BREAK%%LINE_BREAK%&b»Click«
+        to submit'
+      ItemData: NETHER_STAR
+      MetaData: 0
+  MainMenuMenuBar:
+    DoNotShowItemIfCurrentMenu: false
+    PartyItem:
+      Use: false
+      ItemData: FIREWORK
+      MetaData: 0
+      Place: 4
+      Text: '&5Party Menu%LINE_BREAK%'
+      Permission: ''
+    FriendItem:
+      Use: true
+      ItemData: EMERALD
+      MetaData: 0
+      Place: 5
+      Text: '&eFriends Menu'
+      Permission: ''
+    SettingsItem:
+      Use: true
+      Permission: ''
+      ItemData: REDSTONE_COMPARATOR
+      MetaData: 0
+      Text: '&7Settings'
+      Place: 4
+    FriendRequestItem:
+      Use: true
+      Permission: ''
+      ItemData: PAPER
+      MetaData: 0
+      Text: '&5Friend Requests'
+      Place: 6
+    PlaceHolderItem:
+      Use: false
+      MetaData: 15
+      Text: ' '
+      ItemData: STAINED_GLASS_PANE
+    Own:
+      Example:
+        Use: false
+        ItemData: STONE
+        MetaData: 0
+        Text: A simple example. Click this command to let the player who is clicking onto the item execute "/bar" command
+        Place: 0
+        Command: bar
+        BungeeCordCommand: false
+        KeepOpen: false
+    GlowIfCurrentMenu: true
+  FriendMenu:
+    StartsWithOne: true
+    Name: '&e&lFriends Menu &7Page '
+    PastPage: ''
+    OnlineFriends:
+      OnlineOn: '&7Online on &e&l[SERVER]'
+    OfflineFriends:
+      LastSeen: '&7Last seen [LAST_SEEN]'
+    NoFriendsItem:
+      Use: true
+      ItemData: PAPER
+      MetaData: 0
+      Text: '&6You''ve not added any friends yet. %LINE_BREAK%&6To add friends use
+        &a/friend add&4.'
+  HideInventory:
+    PlaceHolderItem:
+      Use: false
+      MetaData: 15
+      Text: ' '
+      ItemData: STAINED_GLASS_PANE
+  FriendDetailView:
+    Size: 27
+    PlaceHolderItem:
+      Use: false
+      MetaData: 15
+      Text: ' '
+      ItemData: STAINED_GLASS_PANE
+    DeleteItem:
+      Use: true
+      MetaData: 0
+      Text: '&cRemove this friend %LINE_BREAK%&7Your friend will be removed %LINE_BREAK%&7from
+        your friend list. %LINE_BREAK%%LINE_BREAK%&b»Click« to submit'
+      Place: 11
+      ItemData: BARRIER
+    InviteIntoParty:
+      Use: false
+      ItemData: FIREWORK
+      MetaData: 0
+      Text: '&5Invite this player into your party%LINE_BREAK%§7If you click on this
+        item a%LINE_BREAK%&7party invite will be send to your friend.'
+      Place: 12
+    JumpTo:
+      Use: true
+      ItemData: WOOD_PLATE
+      MetaData: 0
+      Text: '&6Jump to this Player%LINE_BREAK%&7Join your friends%LINE_BREAK%&7server
+        with one click.%LINE_BREAK%%LINE_BREAK%&b»Click« to submit'
+      Place: 13
+    Own:
+      Example1:
+        Use: false
+        OnlyOnline: true
+        ItemData: STONE
+        MetaData: 0
+        Text: ''
+        Place: 11
+        Command: foo %player%
+        BungeeCordCommand: true
+        KeepOpen: false
+      Example2:
+        Use: false
+        OnlyOnline: false
+        ItemData: STONE
+        MetaData: 0
+        Text: A simple example. Click this command to let the player who is clicking onto the item execute "/bar" command
+        Place: 9
+        Command: bar
+        BungeeCordCommand: false
+        KeepOpen: false
+    BackItem:
+      Use: true
+      Place: 15
+  FriendRequestMenu:
+    Size: 27
+    NoPendingFriendRequestsItem:
+      Use: true
+      ItemData: PAPER
+      MetaData: 0
+      Text: '&7You do not have %LINE_BREAK%&7any pending friend requests.'
+  FriendAcceptMenu:
+    PlaceHolderItem:
+      Use: false
+      MetaData: 15
+      Text: ' '
+      ItemData: INK_SACK
+    AcceptItem:
+      MetaData: 10
+      Text: '&aAccept friend request%LINE_BREAK%%LINE_BREAK%&b»Click« to submit'
+      ItemData: INK_SACK
+    DenyItem:
+      MetaData: 0
+      Text: '&cDecline friend request%LINE_BREAK%%LINE_BREAK%&b»Click« to submit'
+      ItemData: BARRIER
+  SettingsMenu:
+    Size: 45
+    FirstItemPlace: 9
+    PlaceHolderItem:
+      Use: false
+      MetaData: 14
+      Text: ' '
+      ItemData: INK_SACK
+    DisablePartyInviteSetting: true
+    Priorities:
+      ReceiveFriendRequests: 2
+      ReceivePartyInvitations: 1
+      ReceiveFriendMSG: 3
+      ShowAsOnline: 4
+      AllowJumps: 5
+    CloseSettingsInventoryAutomatically: false
+  PartyGUI:
+    Enabled: false
+    MainMenu:
+      Minimum-Lines: 5
+      Name: '&5&lYour Party &7Page '
+      PastPage: ''
+      StartsWithOne: true
+      PlaceHolderItem:
+        Use: false
+        MetaData: 14
+        Text: ' '
+        ItemData: INK_SACK
+      HowToCreateAPartyItem:
+        ItemData: PAPER
+        MetaData: 0
+        Text: '&4You are not in a party. Invite people into a party by using /party
+          invite'
+      Leader:
+        Color: '&6'
+        Lore: '&7Party &5Leader'
+      PartyMembers:
+        Color: '&b'
+        Lore: '&7Party &6Member'
+        ShowServer: true
+      LeaveParty:
+        Use: true
+        MetaData: 0
+        Text: '&4Leave your party.'
+        Place: 2
+        ItemData: BARRIER
+    PartyMemberDetailView:
+      Size: 27
+      Prefix: '&5Party &6Member: '
+      PlaceHolderItem:
+        Use: false
+        MetaData: 15
+        Text: ' '
+        ItemData: STAINED_GLASS_PANE
+      KickItem:
+        Use: true
+        MetaData: 0
+        Text: '&cKick this player from the party'
+        Place: 10
+        ItemData: BARRIER
+      MakeLeader:
+        Use: true
+        ItemData: BOOK_AND_QUILL
+        MetaData: 0
+        Text: '&eMakes this player the new leader of this party'
+        Place: 13
+      BackItem:
+        Use: true
+        Place: 16
+      Own:
+        Example1:
+          Use: false
+          ItemData: STONE
+          MetaData: 0
+          Text: ''
+          Place: 11
+          Command: foo %player%
+          BungeeCordCommand: true
+          KeepOpen: false
+        Example2:
+          Use: false
+          ItemData: STONE
+          MetaData: 0
+          Text: A simple example. Click this command to let the player who is clicking onto the item execute "/bar" command
+          Place: 9
+          Command: bar
+          BungeeCordCommand: false
+          KeepOpen: false
+ItemDataNames:
+  FriendRequestSetting: PAPER
+  PartyInvitationsSetting: FIREWORK
+  ShowOnlineSetting: SLIME_BALL
+  JumpSetting: EMPTY_MAP
+  ReceiveMessagesSetting: BOOK
+  NextPageButton: SIGN
+  PreviousPageButton: SIGN
+Messages:
+  NameOfTheShowAllItem: '&aShow all players'
+  NextPageButtonName: '&aNext »'
+  PreviousPageButtonName: '&a« Previous'
+  ShowOnlyFriendsAndPeopleOfTheServerTeam: '&eShow only friends and people of the
+    server team'
+  ShowOnlyFriends: '&6Show only friends'
+  ShowOnlyPeopleOfTheServerTeamItem: '&5Show only people of the server team'
+  HideAllPlayersItem: '&cHide All Players'
+  NameOfTheHideInventory: '&6Hide Players'
+  SettingsInventoryName: '&8&lSettings'
+  NameOfTheFriendRequestInventory: '&5&lFriend Requests'
+  YouReceiveFriendRequests: '&aEnabled&c'
+  YouReceiveNoFriendRequests: '&cDisabled&c'
+  YouReceivePartyInvitations: '&aEnabled'
+  YouReceivePartyInvitationsOnlyFromFriends: '&6Friends only'
+  YourStatusWillBeShownOnline: '&aEnabled&b'
+  YourStatusWillBeShownOffline: '&cDisabled&a'
+  YouReceiveMessages: '&aEnabled&a'
+  YouWontReceiveMessages: '&cDisabled&b'
+  JumpAllowed: '&aEnabled&e'
+  NoJump: '&cDisabled&3'
+  ErrorTheNameIsToLong: '&7[Friends]&r &7The name of the player is too long. Please
+    use the command /friend instead of the GUI'
+  FriendPlayerColorOnline: '&7'
+  FriendsStatusOnlineColor: '&a'
+  FriendPlayerColorOffline: '&8'
+  FriendsStatusOfflineColor: '&c'
+  FriendRequestFriendColor: '&7'
+  WantReceiveFriendRequests: '&9Receive friend requests'
+  WantReceivePartyInvitations: '&8invitations'
+  WantToBeShownAsOnline: '&9Show online status'
+  ShouldFriendsBeAbleToJumpToYou: '&9Allow friends-join'
+  WantReceiveMessages: '&9Allow private messages'

@@ -1,0 +1,7 @@
+groups:
+  default:
+    options:
+      default: true
+    permissions:
+    - dragonescape.help
+schema-version: 1

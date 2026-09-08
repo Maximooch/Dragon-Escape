@@ -1,0 +1,4 @@
+name: LocalPlayers
+version: 1.1
+main: LocalPlayers
+loadbefore: [Link, Cubics, Parcade, DragonEscape]

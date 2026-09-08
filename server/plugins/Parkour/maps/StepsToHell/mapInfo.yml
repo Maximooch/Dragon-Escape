@@ -1,0 +1,18 @@
+# StepsToHell
+
+alias: StepsToHell
+creator: K_391
+impossible-time: 0
+cubics-reward: 100
+parkour-exp-reward: 100
+time-of-day: 6000
+status: 2
+death-blocks:
+- 166
+- 166
+- 8
+- 9
+- 10
+- 11
+checkpoints:
+- CadeMap1;3145;112;-1128;0

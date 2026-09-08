@@ -1,0 +1,18 @@
+# MapleTreeway
+
+alias: MAP
+creator: Masts
+impossible-time: 0
+cubics-reward: 20
+parkour-exp-reward: 100
+time-of-day: 0
+status: 0
+death-blocks:
+- 166
+- 166
+- 8
+- 9
+- 10
+- 11
+checkpoints:
+- DE;-1998;100;-3000;0

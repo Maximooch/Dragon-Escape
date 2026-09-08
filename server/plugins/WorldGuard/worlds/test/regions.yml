@@ -1,0 +1,55 @@
+regions:
+  adam:
+    min:
+      x: -420.0
+      y: 0.0
+      z: 324.0
+    max:
+      x: -15.0
+      y: 255.0
+      z: 1044.0
+    members: {}
+    flags:
+      vine-growth: deny
+      ice-melt: deny
+      leaf-decay: deny
+      passthrough: allow
+      fire-spread: deny
+    owners: {}
+    type: cuboid
+    priority: 0
+  alaska:
+    min:
+      x: -396.0
+      y: 3.0
+      z: 353.0
+    max:
+      x: -15.0
+      y: 253.0
+      z: 1044.0
+    members: {}
+    flags:
+      ice-melt: deny
+      leaf-decay: deny
+      passthrough: allow
+    owners: {}
+    type: cuboid
+    priority: 0
+  jungle:
+    min:
+      x: -13.0
+      y: 3.0
+      z: 412.0
+    max:
+      x: 183.0
+      y: 253.0
+      z: 586.0
+    members: {}
+    flags:
+      vine-growth: deny
+      leaf-decay: deny
+      passthrough: allow
+      mushroom-growth: deny
+    owners: {}
+    type: cuboid
+    priority: 0

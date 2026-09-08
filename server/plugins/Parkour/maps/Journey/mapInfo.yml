@@ -1,0 +1,18 @@
+# Journey
+
+alias: J
+creator: Link125 & Friends
+impossible-time: 60000
+cubics-reward: 16
+parkour-exp-reward: 100
+time-of-day: 0
+status: 0
+death-blocks:
+- 166
+- 166
+- 8
+- 10
+- 11
+- 11
+checkpoints:
+- DE;992;170;-3001;178

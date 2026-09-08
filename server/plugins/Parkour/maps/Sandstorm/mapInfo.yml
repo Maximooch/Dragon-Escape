@@ -1,0 +1,20 @@
+# Sandstorm
+
+alias: SAN
+creator: AxeHam
+impossible-time: 55
+cubics-reward: 16
+parkour-exp-reward: 100
+time-of-day: 6000
+status: 0
+death-blocks:
+- 166
+- 166
+- 8
+- 9
+- 10
+- 11
+- 11
+- 10
+checkpoints:
+- DE;-2040;74;1951;0

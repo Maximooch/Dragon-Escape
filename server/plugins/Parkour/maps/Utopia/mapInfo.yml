@@ -1,0 +1,19 @@
+# Utopia
+
+alias: UTO
+creator: Intoxicating
+impossible-time: 56000
+cubics-reward: 20
+parkour-exp-reward: 100
+time-of-day: 6000
+status: 0
+death-blocks:
+- 166
+- 8
+- 9
+- 10
+- 11
+- 8
+- 9
+checkpoints:
+- DE;-946;122;-896;268

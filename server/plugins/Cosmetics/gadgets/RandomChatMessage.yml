@@ -1,0 +1,7 @@
+messages:
+  - quack
+  - hello there
+  - I like turtles
+  - hello again
+price: 1000
+cooldown: 15000

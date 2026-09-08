@@ -1,0 +1,18 @@
+# CrystallineColony2
+
+alias: CC2
+creator: Cmelvard
+impossible-time: 62000
+cubics-reward: 16
+parkour-exp-reward: 100
+time-of-day: 18000
+status: 0
+death-blocks:
+- 166
+- 166
+- 8
+- 9
+- 10
+- 11
+checkpoints:
+- DE;36;89;2909;1

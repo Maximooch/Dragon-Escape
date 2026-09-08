@@ -1,0 +1,159 @@
+# Detailed explanation of all options available at https://github.com/NEZNAMY/TAB/wiki/config.yml
+
+change-nametag-prefix-suffix: true
+change-tablist-prefix-suffix: true
+enable-header-footer: true
+header:
+- ' '
+- '&e&lPARCADE'
+- '&6&lParkour &r&l+ &a&lArcade'
+- ' '
+footer:
+- ' '
+- '&fCurrently playing on &bHub'
+- '&eParcade.net'
+- ' '
+group-sorting-priority-list:
+- Owner
+- Developer
+- Management
+- Admin
+- Mod
+- Head-Builder
+- Builder
+- VIP
+- TwitchRare
+- default
+Groups:
+  Owner:
+    tabprefix: '&e&lOWNER &e'
+    tagprefix: '&e&lOWNER &e'
+  Developer:
+    tabprefix: '&c&lDEV &c'
+    tagprefix: '&c&lDEV &c'
+  Management:
+    tabprefix: '&c&lMANAGER &c'
+    tagprefix: '&c&lMANAGER &c'
+  Admin:
+    tabprefix: '&4&lADMIN &4'
+    tagprefix: '&4&lADMIN &4'
+  Mod:
+    tabprefix: '&5&lMOD &5'
+    tagprefix: '&5&lMOD &5'
+  Head-Builder:
+    tabprefix: '&2&lSR.BUILDER &2'
+    tagprefix: '&2&lSR.BUILDER &2'
+  Builder:
+    tabprefix: '&2&lBUILDER &2'
+    tagprefix: '&2&lBUILDER &2'
+  VIP:
+    tabprefix: '&b&lVIP &b'
+    tagprefix: '&b&lVIP &b'
+  Gold:
+    tabprefix: '&6&lGOLD &6'
+    tagprefix: '&6&lGOLD &6'
+  TwitchRare:
+    tabprefix: '&b&lSR.BUILDER &b'
+    tagprefix: '&b&lSR.BUILDER &b'
+  default:
+    tabprefix: '&9'
+    tagprefix: '&9'
+  _OTHER_:
+    tabprefix: '&9'
+    tagprefix: '&9'
+Users:
+  a:
+    tabprefix: niko
+    tagprefix: niko
+enable-collision: true
+do-not-move-spectators: false
+unlimited-nametag-prefix-suffix-mode:
+  enabled: false
+  modify-npc-names: false
+per-world-settings:
+  world1:
+    header:
+    - an example of world with custom
+    footer:
+    - header/footer and prefix/suffix
+    Groups:
+      Owner:
+        tabprefix: '&0&l[&a&lOwner&0&l] &a'
+        tagprefix: '&2&lOwner &a'
+  world2-world3:
+    header:
+    - This is a shared header for
+    - world2 and world3
+placeholders:
+  afk-yes: ' &4*&4&lAFK&4*&r'
+  afk-no: ''
+  date-format: dd.MM.yyyy
+  time-format: '[HH:mm:ss / h:mm a]'
+  time-offset: 0
+  remove-strings:
+  - '[]'
+  - < >
+rank-aliases:
+  Admin: '&4&lADMIN'
+  Mod: '&b&lMOD'
+  Premium: '&6&lPREMIUM'
+  Ultra: '&b&lULTRA'
+  Legend: '&a&lLEGEND'
+  Titan: '&c&lTITAN'
+  Youtuber: '&c&lYOUTUBE'
+  _OTHER_: '&7No Rank'
+disable-features-in-worlds:
+  header-footer:
+  - disabledworld
+  tablist-names:
+  - disabledworld
+  nametag:
+  - disabledworld
+  bossbar:
+  - disabledworld
+  belowname:
+  - disabledworld
+  yellow-number:
+  - disabledworld
+per-world-playerlist:
+  enabled: false
+  allow-bypass-permission: false
+  ignore-effect-in-worlds:
+  - ignoredworld
+  - build
+  shared-playerlist-world-groups:
+    lobby:
+    - lobby1
+    - lobby2
+    minigames:
+    - paintball
+    - bedwars
+    DoNotDoThis:
+    - ThisIsASingleWorldSoThereIsNoPointInEvenCreatingGroupForIt
+sort-players-by-permissions: false
+fix-pet-names: false
+use-primary-group: true
+primary-group-finding-list:
+- Owner
+- Admin
+- Helper
+- default
+assign-groups-by-permissions: false
+classic-vanilla-belowname:
+  enabled: false
+  number: '%health%'
+  text: Health
+placeholderapi-refresh-intervals:
+  default-refresh-interval: 100
+  server:
+    '%server_uptime%': 1000
+    '%server_tps_1_colored%': 1000
+  player:
+    '%vault_prefix%': 1000
+    '%player_health%': 200
+    '%player_ping%': 1000
+  relational:
+    '%rel_factionsuuid_relation_color%': 500
+yellow-number-in-tablist: '%ping%'
+revert-collision-rule-in-worlds:
+- revertedworld

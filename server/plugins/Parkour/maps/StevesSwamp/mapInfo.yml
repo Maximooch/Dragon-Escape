@@ -1,0 +1,16 @@
+# StevesSwamp
+
+alias: STE
+creator: MASTS & duckle
+impossible-time: 65000
+cubics-reward: 16
+parkour-exp-reward: 100
+time-of-day: 0
+status: 0
+death-blocks:
+- 166
+- 10
+- 11
+- 11
+checkpoints:
+- DE;2001;100;-998;0

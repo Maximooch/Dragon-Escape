@@ -1,0 +1,18 @@
+# KamakoaBlossom
+
+alias: KAM
+creator: Strqto & Intoxicating
+impossible-time: 59
+cubics-reward: 16
+parkour-exp-reward: 100
+time-of-day: 6000
+status: ACTIVE
+death-blocks:
+- STATIONARY_LAVA
+- WATER
+- LAVA
+- STATIONARY_WATER
+- BARRIER
+checkpoints:
+- DE;-3000;100;4000;271
+radius: 450

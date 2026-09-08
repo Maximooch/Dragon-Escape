@@ -1,0 +1,19 @@
+# CosmicCalamity
+
+alias: CosmicCalami
+creator: duckle
+impossible-time: 65000
+cubics-reward: 100
+parkour-exp-reward: 100
+time-of-day: 18000
+status: 2
+death-blocks:
+- 166
+- 166
+- 8
+- 9
+- 10
+- 11
+- 11
+checkpoints:
+- CadeMap1;-3730;97;1895;0

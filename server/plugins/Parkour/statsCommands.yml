@@ -1,0 +1,24 @@
+prefix: ''
+permission: parkour.default
+commands:
+  SUSPECT_PB:
+    slot: 0
+    material: STONE
+    use-via-console: false
+    extra-permission: parkour.default
+    usage: suspect_pb
+    arguments: ''
+  DISABLE_PB:
+    slot: 0
+    material: STONE
+    use-via-console: false
+    extra-permission: parkour.default
+    usage: disable_pb
+    arguments: ''
+  SUS_MENU:
+    slot: 0
+    material: STONE
+    use-via-console: false
+    extra-permission: parkour.default
+    usage: sus_menu
+    arguments: ''

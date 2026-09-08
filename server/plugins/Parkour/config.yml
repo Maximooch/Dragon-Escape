@@ -1,0 +1,43 @@
+# Parkour Config
+# NOTE: This Config only acts for the server that its attached to!
+
+lobby: DE;0;94;0;-180
+gamemode-name: DE Solo
+wr-board: DE;-20;97;11;-269
+allowed-commands:
+- msg
+- r
+- stats
+- leave
+- hub
+- mapstats
+- lb
+- leaderboard
+- wrh
+- wrhistory
+- pbh
+- pbhistory
+- l
+- wrlist
+- maplist
+- confirm
+- favorite
+- unfavorite
+scoreboard-name: '&6&lDE Solo'
+scoreboard-name-pratice: '&e&lDE Practice'
+scoreboard:
+- '&0'
+- '&a%arena%'
+- '&7[%alias%]'
+- '&1'
+- '&5&lPB: &e%pb%'
+- '&d&lWR: &e%wr%'
+- '&dby: &e%wrholder%'
+- '&2'
+- '&aExperience:'
+- '&e%exp%'
+- '&3'
+- '&7/par for help'
+- '&7and more info'
+- '&7&m                     '
+- '&e   Parcade.net'

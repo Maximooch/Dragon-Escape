@@ -36,6 +36,7 @@ public final class DragonEscape extends JavaPlugin {
    private static boolean cubicsEnabled = false;
 
    public void onEnable() {
+      instance = this;
       file = new File(this.getDataFolder() + "/config.yml");
       if (!file.exists()) {
          getInstance().saveResource("config.yml", false);
@@ -68,17 +69,12 @@ public final class DragonEscape extends JavaPlugin {
          }
       }, 0L, 12000L);
 
-      for (String arena : ArenaUtils.getArenas()) {
-         try {
-            System.out.println("Loading arena " + arena + "...");
-            ArenaUtils.createArena(arena, ArenaUtils.getSchematicName(arena));
-         } catch (IOException | WorldEditException var6) {
-            var6.printStackTrace();
-         }
-      }
+      // Arenas are created on demand and registered in ArenaUtils for reuse.
    }
 
    public void onDisable() {
+      ArenaUtils.stopPastes();
+      Arena.clearRestores();
       Leaderboard.remove();
       PlayerCountHologram.remove();
       DragonEscapeAdminCommand.removeAllConfigurings();

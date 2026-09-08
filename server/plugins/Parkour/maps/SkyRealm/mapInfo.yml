@@ -1,0 +1,20 @@
+# SkyRealm
+
+alias: SKR
+creator: Unknown
+impossible-time: 53000
+cubics-reward: 24
+parkour-exp-reward: 100
+time-of-day: 0
+status: 0
+death-blocks:
+- 166
+- 166
+- 8
+- 9
+- 10
+- 11
+- 9
+- 11
+checkpoints:
+- DE;-3000;100;-4000;0

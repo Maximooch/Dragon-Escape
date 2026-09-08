@@ -1,0 +1,18 @@
+# SkylandsReborn
+
+alias: SKYR
+creator: RCA
+impossible-time: 0
+cubics-reward: 30
+parkour-exp-reward: 100
+time-of-day: 6000
+status: ACTIVE
+death-blocks:
+- STATIONARY_WATER
+- STATIONARY_LAVA
+- WATER
+- LAVA
+- BARRIER
+checkpoints:
+- DE;-846;144;4043;-1
+radius: 450

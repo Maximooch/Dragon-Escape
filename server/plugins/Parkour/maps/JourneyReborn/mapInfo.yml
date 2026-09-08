@@ -1,0 +1,18 @@
+# JourneyReborn
+
+alias: JR
+creator: Cerdax & Ocelotguyy
+impossible-time: 49000
+cubics-reward: 16
+parkour-exp-reward: 100
+time-of-day: 6000
+status: 0
+death-blocks:
+- 166
+- 166
+- 8
+- 9
+- 10
+- 11
+checkpoints:
+- DE;0;100;-3000;188

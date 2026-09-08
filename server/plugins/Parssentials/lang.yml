@@ -1,0 +1,86 @@
+chat-format: "%vault_rankprefix%%player_displayname%&7: %staff_color%"
+build-disabled: "%prefix%Build mode has been &cdisabled&7."
+build-disabled-others: "%prefix%Build mode has been &cdisabled &7for &7%player%."
+build-enabled: "%prefix%Build mode has been &aenabled&7."
+build-enabled-others: "%prefix%Build mode has been &aenabled &7for &7%player%."
+build-mode: "%prefix%Use &7/build &7to toggle build mode."
+cubics: "%prefix%&7%player%'s &fcubics: &7%cubics%"
+cubics-not-enabled: "%prefix%Cubics are not enabled."
+disguise-as-self: "%prefix%&cYou can't disguise as yourself."
+disguised: "%prefix%You have been disguised as &7%asWho%&7."
+fly-disabled: "%prefix%Fly has been &cdisabled&7."
+fly-disabled-others: "%prefix%Fly has been &cdisabled &7for &7%player%."
+fly-enabled: "%prefix%Fly has been &aenabled&7."
+fly-enabled-others: "%prefix%Fly has been &aenabled &7for &7%player%."
+going-back: "%prefix%Going back."
+invalid-syntax: |-
+  %prefix%&cInvalid syntax, please use:
+    %syntax%
+inventory-cleared: "%prefix%&7%player%'s &7inventory has been cleared."
+no-perm: "%prefix%&cYou do not have permission to execute that command."
+not-a-number: "%prefix%&cField %field% has to be a number."
+not-disguised: "%prefix%&cYou are already not disguised."
+not-sitting: "%prefix%You are no longer sitting."
+nowhere-to-go: "%prefix%&cNo where to go back."
+offline-player: "%prefix%That player is offline."
+player-build-disabled: "%prefix%Build mode has been &cdisabled &7by &7%sender%&7."
+player-build-enabled: "%prefix%Build mode has been &aenabled &7by &7%sender%&7."
+player-command: "%prefix%&cOnly players can use that command."
+player-fly-disabled: "%prefix%Fly has been &cdisabled &7by &7%sender%&7."
+player-fly-enabled: "%prefix%Fly has been &aenabled &7by &7%sender%&7."
+prefix: "&5«&e&l%server%&5» &7"
+range: "%prefix%&cField %field% has to be in range %range_start%-%range_end%."
+repeat: "%prefix%&cPlease do not repeat yourself."
+sitting: "%prefix%You are now sitting."
+spam: "%prefix%&cPlease do not spam in the chat."
+speed: "%prefix%Setting &7%type% &7speed to &7%speed%&7."
+un-disguised: "%prefix%You have been undisguised"
+unknown-player: "%prefix%That player is unknown."
+world-downloader-notify: "%prefix%&7%player% &7tried to use world downloader."
+your-inventory-cleared: "%prefix%Your inventory has been cleared."
+sudo: "%prefix%You have executed command &7%command% &7on &7%player%'s &7behalf."
+chad-disabled: "%prefix%&cChat is disabled."
+chat-on: "%prefix%Chat has been &aenabled&7 by &7%player%&7."
+chat-off: "%prefix%Chat has been &cdisabled&7 by &7%player%&7."
+spectate-yourself: "%prefix%&cYou can't spectate yourself."
+no-longer-spectating: "%prefix%You are no longer spectating &7%player%&7."
+spectating: "%prefix%You are spectating &7%player%&7."
+already-spectating: "%prefix%&7%spectator% &7is spectating &7%player%&7."
+you-already-spectating: "%prefix%You are already spectating &7%player%&7."
+spectating-you: "%prefix%&7%player% &7is spectating you."
+announce-format: "%prefix%%message%"
+already-running: "%prefix%Server is already running."
+starting: "%prefix%Server is starting."
+started: "%prefix%Server has been started."
+ignore-yourself: "%prefix%You can't ignore yourself."
+ignored: "%prefix%You have successfully ignored &e%player%&7."
+unignored: "%prefix%You have successfully unignored &e%player%&7."
+error-occurred: "%prefix%&cError occurred, please report this: %error%."
+ignore-list: "%prefix%List of players that you are ignoring: &e%players%&7."
+warp-set: "%prefix%Warp &e%name% &7has been set."
+warp-removed: "%prefix%Warp &e%name% &7has been removed."
+not-a-warp: "%prefix%&c%name% is not a warp!"
+warped: "%prefix%You have been warped to &e%name%&7."
+not-ignoring: |-
+  %prefix%You are not ignoring anyone.
+  %prefix%To (un)ignore someone type: &e/ignore <player>
+pinged: |-
+  %prefix%You got mentioned in a message by &7%player%
+  %prefix%%message%
+whois: |-
+  &7+----------------------------------+
+  &7WhoIs: &f%player_name%
+  &7+----------------------------------+
+  &7Displayname: &f%player_displayname%
+  &7UUID: &f%player_uuid%
+  &7Location: &f%geolocation_country% (%geolocation_countryCode%), %geolocation_city%
+  &7Time Zone: &f%geolocation_timezone%
+  &7ISP: &f%geolocation_isp%
+  &7Health: &f%player_health%
+  &7Food: &f%player_food_level%
+  &7Location: &f%location%
+  &7Cubics: &f%cubics_amount%
+  &7IP: &f%player_ip%
+  &7Gamemode: &f%player_gamemode%
+  &7Rank: &f%vault_rank%
+  &7OP: %isop%

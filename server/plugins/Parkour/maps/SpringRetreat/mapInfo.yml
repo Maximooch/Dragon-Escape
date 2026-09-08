@@ -1,0 +1,19 @@
+# SpringRetreat
+
+alias: SPR
+creator: Parota
+impossible-time: 55000
+cubics-reward: 30
+parkour-exp-reward: 100
+time-of-day: 6000
+status: 0
+death-blocks:
+- 166
+- 166
+- 8
+- 9
+- 10
+- 11
+- 11
+checkpoints:
+- DE;-3000;100;-2000;1

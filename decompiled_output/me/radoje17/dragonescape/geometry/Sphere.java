@@ -7,49 +7,39 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
-import org.bukkit.util.Vector;
 
 public class Sphere {
    private World world;
-   private int x = 0;
-   private int y = 0;
-   private int z = 0;
-   private List<Block> cubicSet;
-   private List<Block> sphericalSet = new ArrayList<>();
-   private int radius;
-   private Arena arena;
+   private int x, y, z;
+   private final int[][] offsets;
+   private final Arena arena;
 
    public Sphere(int radius, World world, Arena arena) {
       this.world = world;
-      this.radius = radius;
       this.arena = arena;
-      Cuboid region = new Cuboid(new Vector(radius, radius, radius), new Vector(-radius, -radius, -radius));
-      this.cubicSet = region.getVolume(this.world);
-
-      for (Block block : this.cubicSet) {
-         int a = block.getX() * block.getX();
-         int b = block.getY() * block.getY();
-         int c = block.getZ() * block.getZ();
-         if (a + b + c <= this.radius * this.radius) {
-            this.sphericalSet.add(block);
+      List<int[]> points = new ArrayList<>();
+      for (int dx = -radius; dx <= radius; dx++) {
+         for (int dy = -radius; dy <= radius; dy++) {
+            for (int dz = -radius; dz <= radius; dz++) {
+               if (dx * dx + dy * dy + dz * dz <= radius * radius) points.add(new int[]{dx, dy, dz});
+            }
          }
       }
+      offsets = points.toArray(new int[points.size()][]);
    }
-
    public Sphere at(Location location) {
-      this.world = location.getWorld();
-      this.x = (int)Math.floor(location.getX());
-      this.y = (int)Math.floor(location.getY());
-      this.z = (int)Math.floor(location.getZ());
+      world = location.getWorld();
+      x = location.getBlockX(); y = location.getBlockY(); z = location.getBlockZ();
       return this;
    }
-
-   public void set(Material mat) {
-      for (Block block : this.sphericalSet) {
-         Block b = this.world.getBlockAt(this.x + block.getX(), this.y + block.getY(), this.z + block.getZ());
-         if (b.getType() != mat) {
-            this.arena.addBlockState(b);
-            b.setType(mat);
+   public void set(Material material) {
+      for (int[] offset : offsets) {
+         int targetY = y + offset[1];
+         if (targetY < 0 || targetY >= world.getMaxHeight()) continue;
+         Block block = world.getBlockAt(x + offset[0], targetY, z + offset[2]);
+         if (block.getType() != material) {
+            arena.addBlockState(block);
+            block.setType(material, false);
          }
       }
    }

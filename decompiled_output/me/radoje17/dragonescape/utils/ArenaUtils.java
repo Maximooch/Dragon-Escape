@@ -31,6 +31,19 @@ import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 
 public class ArenaUtils {
+   private static final java.util.concurrent.ConcurrentHashMap<Integer, Integer> pasteStates = new java.util.concurrent.ConcurrentHashMap<>();
+   private static final java.util.ArrayDeque<Runnable> pendingPastes = new java.util.ArrayDeque<>();
+   private static volatile boolean stopping;
+   private static boolean pasteRunning;
+   private static volatile EditSession activePaste;
+   public static boolean isPasteComplete(int coords) { return Integer.valueOf(1).equals(pasteStates.get(coords)); }
+   public static boolean hasPasteFailed(int coords) { return Integer.valueOf(-1).equals(pasteStates.get(coords)); }
+   public static void stopPastes() { stopping = true; pendingPastes.clear(); EditSession edit = activePaste; if (edit != null) edit.cancel(); }
+   private static void nextPaste() {
+      if (stopping || pasteRunning || pendingPastes.isEmpty()) return;
+      pasteRunning = true;
+      Bukkit.getScheduler().runTaskAsynchronously(DragonEscape.getInstance(), pendingPastes.removeFirst());
+   }
    private static File f;
    private static FileConfiguration arenas;
    private static int coords;
@@ -40,6 +53,10 @@ public class ArenaUtils {
    private static HashMap<String, List<Arena>> availableArenas;
 
    public ArenaUtils() {
+      stopping = false;
+      pasteRunning = false;
+      pasteStates.clear();
+      pendingPastes.clear();
       arenaIds = new HashMap<>();
       arenasInUse = new HashMap<>();
       availableArenas = new HashMap<>();
@@ -52,7 +69,8 @@ public class ArenaUtils {
       world = voidWorldCreator.createWorld();
       world.setGameRuleValue("doDaylightCycle", "false");
       world.setGameRuleValue("keepInventory", "true");
-      world.setGameRuleValue("randomTickSpeed", "false");
+      world.setGameRuleValue("randomTickSpeed", "0");
+      world.setKeepSpawnInMemory(false);
       world.setGameRuleValue("doFireTick", "false");
       world.setGameRuleValue("mobGriefing", "false");
       world.setMonsterSpawnLimit(0);
@@ -67,14 +85,26 @@ public class ArenaUtils {
    }
 
    public static Arena getArena(String arenaName, boolean solo) throws WorldEditException, IOException {
+      arenaName = arenaName.toLowerCase(java.util.Locale.ROOT);
       if (availableArenas.containsKey(arenaName)) {
          for (Arena a : availableArenas.get(arenaName)) {
-            if (!a.isCheckSolo() || a.isSolo() == solo) {
+            if (a.isReady() && (!a.isCheckSolo() || a.isSolo() == solo)) {
+               makeUnavailable(a);
                return a.restore(false);
             }
          }
       }
 
+      // Reserve an idle arena being restored rather than paste an unnecessary copy.
+      List<Arena> restoring = arenasInUse.get(arenaName);
+      if (restoring != null) {
+         for (Arena candidate : restoring) {
+            if (candidate.canReserveRestore() && (!candidate.isCheckSolo() || candidate.isSolo() == solo)) {
+               candidate.reserveRestore();
+               return candidate;
+            }
+         }
+      }
       return addArena(new Arena(arenaName, solo), false);
    }
 
@@ -354,28 +384,50 @@ public class ArenaUtils {
    }
 
    public static int pasteSchematic(String schematicName) throws WorldEditException, IOException {
-      int coords = ArenaUtils.coords;
-      ArenaUtils.coords += 2500;
-      File file = new File(DragonEscape.getInstance().getDataFolder() + "/schematics/" + schematicName + ".schematic");
-      com.sk89q.worldedit.world.World weWorld = new BukkitWorld(world);
-      Vector to = new Vector(coords, 80, coords);
-      Clipboard clipboard = ClipboardFormat.SCHEMATIC.getReader(new FileInputStream(file)).read(weWorld.getWorldData());
-      final EditSession extent = new EditSessionBuilder(weWorld).fastmode(true).build();
-      ClipboardHolder holder = new ClipboardHolder(clipboard, weWorld.getWorldData());
-      final Operation o = holder.createPaste(extent, weWorld.getWorldData()).to(to).ignoreEntities(true).ignoreAirBlocks(true).build();
-      Bukkit.getScheduler().runTaskAsynchronously(DragonEscape.getInstance(), new Runnable() {
-         @Override
-         public void run() {
+      final File file = new File(DragonEscape.getInstance().getDataFolder(), "schematics/" + schematicName + ".schematic");
+      if (!file.isFile()) throw new IOException("Schematic not found: " + file);
+      if (stopping) throw new IOException("Server is stopping");
+      final int allocated = coords;
+      coords += 2500;
+      final com.sk89q.worldedit.world.World weWorld = new BukkitWorld(world);
+      final com.sk89q.worldedit.world.registry.WorldData worldData = weWorld.getWorldData();
+      pasteStates.put(allocated, 0);
+      pendingPastes.addLast(new Runnable() {
+         @Override public void run() {
+            ClipboardHolder holder = null;
+            EditSession extent = null;
             try {
-               Operations.complete(o);
-            } catch (WorldEditException var2) {
-               var2.printStackTrace();
+               if (stopping) return;
+               Clipboard clipboard;
+               try (FileInputStream input = new FileInputStream(file)) {
+                  clipboard = ClipboardFormat.SCHEMATIC.getReader(input).read(worldData);
+               }
+               holder = new ClipboardHolder(clipboard, worldData);
+               extent = new EditSessionBuilder(weWorld).fastmode(true).allowedRegionsEverywhere().limitUnlimited().changeSetNull().build();
+               activePaste = extent;
+               if (stopping) { extent.cancel(); return; }
+               Operation operation = holder.createPaste(extent, worldData).to(new Vector(allocated, 80, allocated))
+                  .ignoreEntities(true).ignoreAirBlocks(true).build();
+               Operations.complete(operation);
+               extent.flushQueue(); // This legacy FAWE implementation waits off-thread for placement.
+               if (!stopping) pasteStates.put(allocated, 1);
+            } catch (Exception error) {
+               pasteStates.put(allocated, -1);
+               if (extent != null) extent.cancel();
+               DragonEscape.getInstance().getLogger().log(java.util.logging.Level.SEVERE, "Failed to paste " + file.getName(), error);
+            } finally {
+               activePaste = null;
+               if (holder != null) holder.close();
+               if (!stopping && DragonEscape.getInstance().isEnabled()) {
+                  Bukkit.getScheduler().runTask(DragonEscape.getInstance(), new Runnable() {
+                     @Override public void run() { pasteRunning = false; nextPaste(); }
+                  });
+               }
             }
-
-            extent.flushQueue();
          }
       });
-      return coords;
+      nextPaste();
+      return allocated;
    }
 
    public static List<String> getArenasSorted() {

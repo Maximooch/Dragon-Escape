@@ -1,0 +1,17 @@
+# DarkMagicWoods
+
+alias: DMW
+creator: Ocelotguyy
+impossible-time: 63000
+cubics-reward: 16
+parkour-exp-reward: 100
+time-of-day: 0
+status: 0
+death-blocks:
+- 166
+- 8
+- 9
+- 10
+- 11
+checkpoints:
+- DE;-2709;130;1054;79

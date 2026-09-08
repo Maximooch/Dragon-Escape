@@ -74,6 +74,8 @@ public class Game {
    private boolean active = false;
    private boolean dontChangeTimer = false;
    private boolean votingEnabled = true;
+   private boolean ending = false;
+   private int scoreboardTicks;
 
    public void openVotingInventory() {
       boolean includeMaps = this.arenaName.equals("none");
@@ -172,7 +174,6 @@ public class Game {
    }
 
    public Game(String arenaName, Player p) throws WorldEditException, IOException {
-      System.out.println("asd4");
       this.arenaName = arenaName;
       this.gameID = DragonEscape.getInstance().getGameManager().getNextGameID();
       Location l = ArenaUtils.getSpawnPoint(arenaName);
@@ -221,7 +222,9 @@ public class Game {
          this.taskID = Bukkit.getScheduler().runTaskTimer(DragonEscape.getInstance(), new Runnable() {
             @Override
             public void run() {
-               if (Game.this.arena.isReady()) {
+               if (Game.this.arena.hasLoadFailed()) {
+                  Game.this.abortLoading();
+               } else if (Game.this.arena.isReady()) {
                   Game.this.startGame();
                }
             }
@@ -239,8 +242,9 @@ public class Game {
    }
 
    public void updateScoreboard() {
-      if (this.gameStarted) {
+      if (this.gameStarted && !this.ending && this.mapLength > 0 && !this.dragonPoints.isEmpty()) {
          for (Player p : this.players) {
+            if (!this.currentDragonpoints.containsKey(p)) continue;
             int currDragonpoint = this.currentDragonpoints.get(p);
             int dragonpoint = currDragonpoint;
             if (currDragonpoint + 1 < this.dragonPoints.size()) {
@@ -256,16 +260,14 @@ public class Game {
 
             this.currentDragonpoints.put(p, currDragonpoint);
             this.currentDistance.put(p, distance);
-            System.out.println(p.getName() + ": ");
-            System.out.println("currDragonpoint: " + currDragonpoint);
-            System.out.println("distance: " + distance);
          }
 
+         if (++this.scoreboardTicks % 4 != 0) return;
          for (Player p : this.players) {
-            if (p.getGameMode() != GameMode.SPECTATOR) {
+            if (p.getGameMode() != GameMode.SPECTATOR && this.currentDistance.containsKey(p)) {
                Score s = this.objective.getScore(p.getName());
                int newScore = 100 - this.getDistanceToFinish(p) * 100 / this.mapLength;
-               if (newScore >= s.getScore()) {
+               if (newScore > s.getScore()) {
                   s.setScore(newScore);
                }
             }
@@ -331,6 +333,14 @@ public class Game {
             }
          }
       }
+   }
+
+   private void abortLoading() {
+      for (Player player : new ArrayList<>(this.players)) {
+         player.sendMessage(ChatColor.RED + "Arena loading failed. Please try another map; see the server log.");
+         this.removePlayer(player);
+      }
+      this.endGame();
    }
 
    public void startGame() {
@@ -537,6 +547,12 @@ public class Game {
    }
 
    public void endGame() {
+      if (this.ending) return;
+      this.ending = true;
+      if (this.taskID != -1) {
+         Bukkit.getScheduler().cancelTask(this.taskID);
+         this.taskID = -1;
+      }
       boolean end = false;
       if (this.dragon != null) {
          this.dragon.removeDragon();
@@ -603,7 +619,7 @@ public class Game {
                         }
 
                         if (DragonEscape.getInstance().getGameManager().getDeSettings(this.players.get(0)).autoRejoin() && this.solo) {
-                           this.arena.restore();
+                           this.arena.restore(false);
                            p.teleport(this.spawnpoint);
 
                            for (int i = 0; i < 6; i++) {
@@ -668,16 +684,9 @@ public class Game {
       DragonEscape.getInstance().getGameManager().removeGameInProgress(this.gameID);
       this.timerTitle = 0.0;
       if (end) {
+         this.ending = false;
          this.times.clear();
       } else {
-         Bukkit.getScheduler().runTaskLater(DragonEscape.getInstance(), new Runnable() {
-            @Override
-            public void run() {
-               if (Game.this.arena != null && Game.this.arena.COORDS != -1) {
-                  Game.this.arena.restore();
-               }
-            }
-         }, 60L);
          this.active = false;
 
          for (Player p : this.players) {
@@ -709,8 +718,8 @@ public class Game {
                   if (newGame != null) {
                      DragonEscape.getInstance().getGameManager().removeGame(Game.this);
 
-                     for (Player p : Game.this.players) {
-                        newGame.addPlayer(p);
+                     for (Player p : new ArrayList<>(Game.this.players)) {
+                        if (p.isOnline()) newGame.addPlayer(p);
                      }
                   } else {
                      DragonEscape.getInstance().getGameManager().createGame(Game.this);
@@ -943,7 +952,7 @@ public class Game {
    }
 
    public boolean isAcceptingPlayers() {
-      return this.slots() > this.players.size();
+      return !this.ending && this.slots() > this.players.size();
    }
 
    public List<Player> getPlayers() {
@@ -963,6 +972,10 @@ public class Game {
    }
 
    public void timerTick() {
+      if (this.timer == 1 && this.arena != null && !this.arena.isReady()) {
+         if (this.arena.hasLoadFailed()) abortLoading();
+         return;
+      }
       if (this.timer == 30 || this.timer == 20 || this.timer == 10 || this.timer == 5 || this.timer <= 3) {
          for (Player p : this.players) {
             p.sendMessage(Lang.getMessage("game-starting-in").replaceAll("%time%", this.timer + " second" + (this.timer != 1 ? "s" : "")));
@@ -989,6 +1002,8 @@ public class Game {
                for (Player p : this.players) {
                   p.sendMessage(Lang.getMessage("error-occurred").replaceAll("%error%", e.getLocalizedMessage()));
                }
+               this.abortLoading();
+               return;
             }
 
             ArenaUtils.makeUnavailable(this.arena);
@@ -1161,6 +1176,7 @@ public class Game {
 
    public void restart(boolean death) {
       if (this.solo) {
+         this.ending = false;
          this.timerTitle = 0.0;
          this.gameStarted = false;
          Player p = this.players.get(0);

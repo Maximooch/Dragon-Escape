@@ -1,0 +1,13 @@
+prefix: "&5«&e&lParcade&5» &e"
+no-perm: "%prefix%&cYou do not have permission to execute that command."
+awarded: "%prefix%You have been awarded with &a&l%amount% cubics&e."
+give-award: "%prefix%You have awarded %player% with &a&l%amount% cubics&e."
+invalid-syntax: |-
+  %prefix%&cInvalid syntax, please use:
+    %syntax%
+unknown-player: "%prefix%&cThat player has never played here."
+offline-player: "%prefix%&cThat player is offline."
+has-to-be-a-number: "%prefix%&cAmount has to be a number."
+greater-than-zero: "%prefix%&cAmount has to be greater than 0."
+cubics: "%prefix%You have &a&l%amount% cubics&e."
+player-command: "%prefix%This command can be executed only by players."

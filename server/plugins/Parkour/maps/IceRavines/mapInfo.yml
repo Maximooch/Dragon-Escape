@@ -1,0 +1,19 @@
+# IceRavines
+
+alias: ICE
+creator: bbswitzer
+impossible-time: 50000
+cubics-reward: 20
+parkour-exp-reward: 100
+time-of-day: 6000
+status: 0
+death-blocks:
+- 166
+- 8
+- 9
+- 10
+- 11
+- 8
+- 9
+checkpoints:
+- DE;2000;100;-3000;-1

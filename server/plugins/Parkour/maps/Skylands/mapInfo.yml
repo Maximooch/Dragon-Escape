@@ -1,0 +1,20 @@
+# Skylands
+
+alias: SKY
+creator: Chiss
+impossible-time: 75800
+cubics-reward: 16
+parkour-exp-reward: 100
+time-of-day: 6000
+status: 0
+death-blocks:
+- 166
+- 166
+- 8
+- 9
+- 10
+- 11
+- 10
+- 11
+checkpoints:
+- DE;1001;100;1;359

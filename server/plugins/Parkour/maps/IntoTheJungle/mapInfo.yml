@@ -1,0 +1,17 @@
+# IntoTheJungle
+
+alias: ITJ
+creator: F3lice
+impossible-time: 61000
+cubics-reward: 30
+parkour-exp-reward: 100
+time-of-day: 6000
+status: 0
+death-blocks:
+- 166
+- 8
+- 9
+- 8
+- 9
+checkpoints:
+- DE;-1000;100;0;-90

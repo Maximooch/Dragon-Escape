@@ -1,0 +1,268 @@
+# Difficulties: VERY_EASY, EASY, MEDIUM, HARD, VERY_HARD
+# Lengths: VERY_SHORT, SHORT, MEDIUM, LONG, VERY_LONG
+
+SpringRetreat:
+  difficulty: MEDIUM
+  length: MEDIUM
+  isNew: false
+  info: []
+SkylandsReborn:
+  difficulty: MEDIUM
+  length: MEDIUM
+  isNew: false
+  info: []
+Chiss:
+  difficulty: MEDIUM
+  length: MEDIUM
+  isNew: false
+  info: []
+PoseidonsRealm:
+  difficulty: EASY
+  length: MEDIUM
+  isNew: false
+  info: []
+Archipel:
+  difficulty: MEDIUM
+  length: MEDIUM
+  isNew: false
+  info: []
+FungiGalore:
+  difficulty: HARD
+  length: MEDIUM
+  isNew: false
+  info: []
+CosmicCalamity:
+  difficulty: MEDIUM
+  length: MEDIUM
+  isNew: false
+  info: []
+DarkenedHeights:
+  difficulty: HARD
+  length: MEDIUM
+  isNew: false
+  info: []
+MushroomMadness:
+  difficulty: HARD
+  length: MEDIUM
+  isNew: false
+  info: []
+CrystallineColony2:
+  difficulty: HARD
+  length: MEDIUM
+  isNew: false
+  info: []
+Journey2:
+  difficulty: MEDIUM
+  length: MEDIUM
+  isNew: false
+  info: []
+LotusCrescent:
+  difficulty: MEDIUM
+  length: MEDIUM
+  isNew: false
+  info: []
+BirchFallsV2:
+  difficulty: MEDIUM
+  length: MEDIUM
+  isNew: false
+  info: []
+BuildersBedroom:
+  difficulty: MEDIUM
+  length: MEDIUM
+  isNew: false
+  info: []
+DimensionRush:
+  difficulty: HARD
+  length: MEDIUM
+  isNew: false
+  info: []
+IslandHopping:
+  difficulty: EASY
+  length: MEDIUM
+  isNew: false
+  info: []
+GrumbleVulcano:
+  difficulty: EASY
+  length: MEDIUM
+  isNew: false
+  info: []
+Highlands:
+  difficulty: HARD
+  length: MEDIUM
+  isNew: false
+  info: []
+JungleEscape:
+  difficulty: MEDIUM
+  length: MEDIUM
+  isNew: false
+  info: []
+StevesSwamp:
+  difficulty: MEDIUM
+  length: MEDIUM
+  isNew: false
+  info: []
+IntoTheJungle:
+  difficulty: HARD
+  length: MEDIUM
+  isNew: false
+  info: []
+Caves:
+  difficulty: EASY
+  length: MEDIUM
+  isNew: false
+  info: []
+PirateBay:
+  difficulty: MEDIUM
+  length: MEDIUM
+  isNew: false
+  info: []
+Journey:
+  difficulty: HARD
+  length: MEDIUM
+  isNew: false
+  info: []
+Paradise:
+  difficulty: MEDIUM
+  length: MEDIUM
+  isNew: false
+  info: []
+2k56:
+  difficulty: HARD
+  length: MEDIUM
+  isNew: false
+  info: []
+AncientClash:
+  difficulty: HARD
+  length: MEDIUM
+  isNew: false
+  info: []
+CandyLand:
+  difficulty: HARD
+  length: MEDIUM
+  isNew: false
+  info: []
+FrostRun:
+  difficulty: HARD
+  length: MEDIUM
+  isNew: false
+  info: []
+TimeTravel:
+  difficulty: HARD
+  length: MEDIUM
+  isNew: false
+  info: []
+StepsToHell:
+  difficulty: MEDIUM
+  length: MEDIUM
+  isNew: false
+  info: []
+MysticalMines:
+  difficulty: MEDIUM
+  length: MEDIUM
+  isNew: false
+  info: []
+Skylands:
+  difficulty: HARD
+  length: MEDIUM
+  isNew: false
+  info: []
+StevesAdventure:
+  difficulty: MEDIUM
+  length: MEDIUM
+  isNew: false
+  info: []
+DarkMagicWoods:
+  difficulty: MEDIUM
+  length: MEDIUM
+  isNew: false
+  info: []
+ThroughHell:
+  difficulty: EASY
+  length: MEDIUM
+  isNew: false
+  info: []
+Huakoe:
+  difficulty: MEDIUM
+  length: MEDIUM
+  isNew: false
+  info: []
+Sandstorm:
+  difficulty: EASY
+  length: MEDIUM
+  isNew: false
+  info: []
+Utopia:
+  difficulty: HARD
+  length: MEDIUM
+  isNew: false
+  info: []
+MapleTreeway:
+  difficulty: EASY
+  length: MEDIUM
+  isNew: false
+  info: []
+QuiescentPines:
+  difficulty: MEDIUM
+  length: MEDIUM
+  isNew: false
+  info: []
+KamakoaBlossom:
+  difficulty: MEDIUM
+  length: MEDIUM
+  isNew: false
+  info: []
+JourneyReborn:
+  difficulty: EASY
+  length: MEDIUM
+  isNew: false
+  info: []
+SkyRealm:
+  difficulty: MEDIUM
+  length: MEDIUM
+  isNew: false
+  info: []
+BirchFalls:
+  difficulty: EASY
+  length: MEDIUM
+  isNew: false
+  info: []
+timertest:
+  difficulty: MEDIUM
+  length: MEDIUM
+  isNew: false
+  info: []
+BlueOrchid:
+  difficulty: MEDIUM
+  length: MEDIUM
+  isNew: false
+  info: []
+Fen:
+  difficulty: EASY
+  length: MEDIUM
+  isNew: false
+  info: []
+SettlersShire:
+  difficulty: MEDIUM
+  length: MEDIUM
+  isNew: false
+  info: []
+ThroughHeaven:
+  difficulty: MEDIUM
+  length: MEDIUM
+  isNew: false
+  info: []
+IceRavines:
+  difficulty: MEDIUM
+  length: MEDIUM
+  isNew: false
+  info: []
+Steampunk:
+  difficulty: MEDIUM
+  length: MEDIUM
+  isNew: false
+  info: []
+StevesJourney:
+  difficulty: MEDIUM
+  length: MEDIUM
+  isNew: false
+  info: []

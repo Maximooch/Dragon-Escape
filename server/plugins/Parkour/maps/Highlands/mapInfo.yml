@@ -1,0 +1,18 @@
+# Highlands
+
+alias: HIG
+creator: Parota & lamborghiniMiura
+impossible-time: 92000
+cubics-reward: 30
+parkour-exp-reward: 100
+time-of-day: 0
+status: 0
+death-blocks:
+- 166
+- 166
+- 8
+- 9
+- 10
+- 11
+checkpoints:
+- DE;-2000;100;3000;0

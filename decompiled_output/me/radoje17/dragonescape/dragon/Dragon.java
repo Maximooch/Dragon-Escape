@@ -40,6 +40,7 @@ public class Dragon {
    private double killRadius;
 
    public void removeDragon() {
+      this.isFlying = false;
       this.craftEnderDragon.remove();
       this.craftArmorStand.remove();
    }
@@ -123,6 +124,7 @@ public class Dragon {
             }
 
             this.g.endGame();
+            return;
          } else {
             Location angles = this.getAngles(this.getCurrentPosition().toVector(), next);
             this.setPosition(next);
@@ -133,12 +135,13 @@ public class Dragon {
          List<Player> toDie = new ArrayList<>();
 
          for (Entity e : this.realArmorStand.getBukkitEntity().getNearbyEntities(this.killRadius, this.killRadius, this.killRadius)) {
-            if (e instanceof Player) {
+            if (e instanceof Player && this.g.getPlayers().contains((Player)e)) {
                toDie.add((Player)e);
             }
          }
 
          for (Player p : toDie) {
+            if (!this.isFlying) break;
             this.g.die(p);
          }
       } else if (this.lastlocation != null) {

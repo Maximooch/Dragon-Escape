@@ -1,0 +1,18 @@
+# ThroughHell
+
+alias: HELL
+creator: Chiss & Genocide604
+impossible-time: 64000
+cubics-reward: 16
+parkour-exp-reward: 100
+time-of-day: 18000
+status: 0
+death-blocks:
+- 166
+- 8
+- 10
+- 11
+- 11
+- 10
+checkpoints:
+- DE;0;100;1000;89

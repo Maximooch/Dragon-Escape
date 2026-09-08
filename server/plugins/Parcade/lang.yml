@@ -1,0 +1,27 @@
+# Alternative Colour Codes
+#  BLACK~ 		&0
+#  DARK_BLUE~ 	&1
+#  DARK_GREEN~   &2
+#  DARK_AQUA~    &3
+#  DARK_RED~     &4
+#  DARK_PURPLE~  &5
+#  GOLD~         &6
+#  GRAY~         &7
+#  DARK_GRAY~    &8
+#  BLUE~         &9
+#  GREEN~        &a
+#  AQUA~         &b
+#  RED~          &c
+#  LIGHT_PURPLE~ &d
+#  YELLOW~       &e
+#  WHITE~        &f
+#  ____________________________________________
+#  BOLD~         &l
+#  RESET FORMAT~ &r
+#
+# To reset a message to it's default value, simply delete it. It will be generated again with the next config reload
+prefix: "&8\xc2\xbb"
+now-sitting: You are now sitting.
+no-longer-sitting: You are no longer sitting.
+no-perms: You do not have permissions to execute this command
+unknown-command: Unknown command.

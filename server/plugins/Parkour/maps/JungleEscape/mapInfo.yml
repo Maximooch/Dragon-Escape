@@ -1,0 +1,21 @@
+# JungleEscape
+
+alias: JUN
+creator: bbswitzer
+impossible-time: 68000
+cubics-reward: 30
+parkour-exp-reward: 100
+time-of-day: 6000
+status: 0
+death-blocks:
+- 166
+- 166
+- 2
+- 8
+- 9
+- 10
+- 11
+- 8
+- 9
+checkpoints:
+- DE;-1000;100;-3000;270

@@ -1,0 +1,25 @@
+lobby: DE;1010.5;100.0;963.5;277.39804;-3.1480646
+kits:
+  leap:
+    cooldown: 8
+    intensity: 1.15
+    intensity-2: 0.6
+  leapclassic:
+    cooldown: 8.0
+    mult: 1.5
+    horizontal: -0.41
+    y: -0.01
+    yAbove: -0.08
+  disruptor:
+    cooldown: 8
+    intensity: 1.15
+    intensity-2: 0.6
+dragon-speed-1: 0.25
+dragon-speed-2: 0.33
+dragon-speed-3: 0.39
+dragon-destroy-radius: 7
+dragon-kill-radius: 5
+global-lobby: DE;0.5;94.0;0.5;-180.0;0.0
+min-height: 25
+leaderboard-location: DE;-10.5;95.55;0.5;-90.24825;38.42063
+player-count-location: DE;0.5;95.6;-6.5;-183.29922;-5.5499926

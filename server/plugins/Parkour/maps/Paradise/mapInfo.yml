@@ -1,0 +1,19 @@
+# Paradise
+
+alias: Paradise
+creator: K_391 & Timmetatsch
+impossible-time: 66000
+cubics-reward: 100
+parkour-exp-reward: 100
+time-of-day: 6000
+status: 2
+death-blocks:
+- 166
+- 2
+- 8
+- 9
+- 10
+- 11
+- 9
+checkpoints:
+- CadeMap1;2052;110;-2043;0

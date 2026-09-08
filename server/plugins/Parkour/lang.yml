@@ -1,0 +1,92 @@
+# Alternative Colour Codes
+#  BLACK~ 		&0
+#  DARK_BLUE~ 	&1
+#  DARK_GREEN~   &2
+#  DARK_AQUA~    &3
+#  DARK_RED~     &4
+#  DARK_PURPLE~  &5
+#  GOLD~         &6
+#  GRAY~         &7
+#  DARK_GRAY~    &8
+#  BLUE~         &9
+#  GREEN~        &a
+#  AQUA~         &b
+#  RED~          &c
+#  LIGHT_PURPLE~ &d
+#  YELLOW~       &e
+#  WHITE~        &f
+#  ____________________________________________
+#  BOLD~         &l
+#  RESET FORMAT~ &r
+#
+# To reset a message to it's default value, simply delete it. It will be generated again with the next config reload
+#
+# Alternative Variable Codes
+#  CHECKPOINT_ID     %cp%
+#  TIME     %time%
+#  ARENANAME     %arena%
+#  PLAYERNAME     %player%
+#  ALIAS     %alias%
+#  CREATOR     %creator%
+#  CUBICS     %cubics%
+#  EXP     %exp%
+map-color: '&6'
+map-already-exists: This map already exists.
+map-doesnt-exist: This map doesn't exist.
+player-not-found: The player %player% cannot be found.
+has-not-played-map-yet: '%player% has not played on %arena% yet.'
+already-playing: You are already playing. Please first leave to join a new map.
+no-cmd-ingame: You cannot execute commands ingame. Use &6/l&c to leave the map.
+join-map: You joined &e%arena%.
+final-time: You finished &e%arena%&a in &e%time%.
+invalid-input-type: Please use a valid input type.
+prefix: '&8[de-solo]'
+wait-before-click-again: Please wait before clicking again.
+loading-data: Loading data. Please wait a moment.
+broke-imp-time: You just set an impossible record and will thus be banned from playing DE Solo. If you believe this to be a mistake, please contact a server administrator on our Discord &ahttps://discord.gg/parcade"
+no-perms: You don't have permissions to execute this command.
+valid-number: Please enter a valid page number.
+no-map-during-this-session: You haven't played a map during this session yet.
+unknown-command: Please enter a valid command.
+unknown-command-admin: Please enter a valid command.
+toggle-join-false: Sorry, you can't join right now, as we are currently working on this plugin. Check out our other gamemodes/servers and come back later. Thank you!
+banned: You recently set an impossible record and are thus banned from playing parkour. If you believe this to be a mistake, please contact a server administrator on our Discord channel &ahttps://discord.gg/parcade
+map-is-closed: You cannot join this map!
+map-is-early-access: Purchase a premium rank at &ahttps://www.parcade.net/store/ &6 to join this map!
+invalid-input: Invalid input parameters!
+purchase-rank-for-practice: Please purchase a rank at &ahttps://www.parcade.net/store/ &6 to use practice mode.
+practice-finished-section: You finished your custom section in &e%time%.
+practice-leave: You left pratice mode!
+practice-fly-too-far: Please don't fly this far our
+pratice-tp-to-cp: Teleported to checkpoint %cp%!
+practice-tp-back-to-start: Teleported back to start!
+finish-cubics: +%cubics% Cubics and +%exp% Exp
+reached-checkpoint: You reached checkpoint %cp%!
+return-to-checkpoint: Teleported back to last checkpoint!
+reset: Timer has been reset!
+not-ingame: You are currently not ingame.
+random-keywords: 'Only use the following keywords:'
+random-no-match: No maps could be found matching your conditions.
+rdm-at-least-one-diff: You must have at least one difficulty selected!
+rdm-at-least-one-length: You must have at least one length selected!
+broke-sus-time: Your time of %time% would have been a new personal record but seems suspiciously low. The run is pending approval.
+unfav-help: Please join a map and try again
+unfav-removed: Removed %arena% from favorite maps list!
+unfav-currently-not-fav: '%arena% is not your favorite maps list.'
+fav-help: Please join a map and try again!
+fav-added: Added %arena% to favorite maps!
+fav-already: '%arana% is alreay a favorite map of yours!'
+fav-reached-absolute-max: You reached the maximum number of favorite maps!
+fav-reached-rank-max: Please purchase a rank at https://www.parcade.net/store/ to get more favorite map slots!
+purchase-rank-for-prem-maps: Please purchase a rank at §9https://www.parcade.net/store/§6 to join premium maps.
+practice-pass-cp: Passed checkpoint!
+practice-reset-end: Reset end location of parkour!
+practice-reset-start: Reset start location of parkour!
+shift-is-safety: You have Safety Mode enabled! Shift + Click to perform action!
+not-executable-from-config: This command cannot be executed via the console!
+something-went-wrong: Something went wrong... please check console!
+race-queued-for-map: Your queued for %arena%.
+race-already-started: This race has already started!
+already-in-race: You must leave your current race before joining another.
+already-queued-on-this-map: You are already queued on this map!
+no-longer-queued: You are no longer queued on %arena%.

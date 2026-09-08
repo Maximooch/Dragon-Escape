@@ -1,0 +1,42 @@
+# Available Effects:
+#
+# SPELL: 						white swirls
+# FLYING_GLYPH: 				directional enchantment table symbols
+# HAPPY_VILLAGER: 				green sparkles
+# HEART: 						heart
+# INSTANT_SPELL: 				white sparkles
+# LAVA_POP: 					directional flame with smoke
+# LAVADRIP: 					orange drops
+# MOBSPAWNER_FLAMES: 			tons of flames
+# NOTE: 						colorful notes
+# PORTAL: 						scattered purple sparkles
+# POTION_BREAK: 				tons of blue swirls (makes sound)
+# POTION_SWIRL: 				colorful swirls
+# POTION_SWIRL_TRANSPARENT: 	colorful swirls
+# SLIME: 						slime-colored drops
+# SMALL_SMOKE:					very tiny gray drops
+# SMOKE:						directional smoke
+# SNOWBALL_BREAK: 				white drops
+# TILE_BREAK: 					black + purple drops
+# VILLAGER_THUNDERCLOUD: 		villager cloud
+# VOID_FOG: 					tiny gray drops
+# WATERDRIP: 					tiny blue drops
+# WITCH_MAGIC:					purple sparkles
+#
+# Custom PermanentEffects Templates:
+# To create a new effect, copy the template of the desired type below permanent-effects.
+# Then change custom-effect-name to any custom name and adjust the parameters
+#
+# custom-effect-name:
+#    type: SPIRAL
+#    duration-in-millis: 1500
+#    effect: HEART
+#    cycles: 1
+#    location: world;x;y;z;0
+#    radius: 1
+#    angular-offset-in-degrees: 0
+#    revolutions: 2
+#    particles-per-revolution: 20
+#    height: 4
+
+permanent-effects: {}

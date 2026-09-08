@@ -1,0 +1,17 @@
+# Archipel
+
+alias: ARC
+creator: Parcade Team
+impossible-time: 0
+cubics-reward: 30
+parkour-exp-reward: 100
+time-of-day: 6000
+status: 0
+death-blocks:
+- 166
+- 8
+- 9
+- 10
+- 11
+checkpoints:
+- DE;668;16;1881;-92

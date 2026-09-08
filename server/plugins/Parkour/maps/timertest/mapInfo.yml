@@ -1,0 +1,17 @@
+# timertest
+
+alias: timertest
+creator: Parcade Team
+impossible-time: 0
+cubics-reward: 100
+parkour-exp-reward: 100
+time-of-day: 6000
+status: 3
+death-blocks:
+- 166
+- 8
+- 9
+- 10
+- 11
+checkpoints:
+- DE;0;94;6;39

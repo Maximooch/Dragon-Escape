@@ -1,0 +1,13 @@
+# Steampunk
+
+time-of-day: 6000
+status: HIDDEN
+alias: STP
+creator: Parcade Team
+impossible-time: 0
+death-blocks: []
+parkour-exp-reward: 10
+cubics-reward: 10
+checkpoints:
+- DE;1998;100;4001;0
+radius: 450

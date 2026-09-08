@@ -72,7 +72,7 @@ public class GameManager implements Listener {
    public void restoreInventory(Player p) {
       if (this.inventories.containsKey(p)) {
          p.getInventory().clear();
-         p.getInventory().setContents(this.inventories.get(p));
+         p.getInventory().setContents(this.inventories.remove(p));
          p.updateInventory();
       }
    }
@@ -127,10 +127,12 @@ public class GameManager implements Listener {
       Bukkit.getScheduler().runTaskTimer(DragonEscape.getInstance(), new Runnable() {
          @Override
          public void run() {
-            for (int i : GameManager.this.gamesInProgress.keySet()) {
+            for (int i : new ArrayList<>(GameManager.this.gamesInProgress.keySet())) {
+               if (!GameManager.this.gamesInProgress.containsKey(i)) continue;
                if (GameManager.this.gamesInProgress.get(i).getDragon() != null) {
                   GameManager.this.gamesInProgress.get(i).getDragon().tick();
-                  GameManager.this.gamesInProgress.get(i).updateScoreboard();
+                  Game current = GameManager.this.gamesInProgress.get(i);
+                  if (current != null) current.updateScoreboard();
                }
             }
          }
@@ -138,7 +140,8 @@ public class GameManager implements Listener {
       Bukkit.getScheduler().runTaskTimer(DragonEscape.getInstance(), new Runnable() {
          @Override
          public void run() {
-            for (int i : GameManager.this.gamesInProgress.keySet()) {
+            for (int i : new ArrayList<>(GameManager.this.gamesInProgress.keySet())) {
+               if (!GameManager.this.gamesInProgress.containsKey(i)) continue;
                GameManager.this.gamesInProgress.get(i).titleTimerTick();
             }
          }
@@ -221,7 +224,7 @@ public class GameManager implements Listener {
 
    public void removeGameFromLists(Game g) {
       this.games.remove(g);
-      this.gamesInProgress.remove(g);
+      this.gamesInProgress.remove(g.gameID);
    }
 
    public void createGame(Game oldGame) {
@@ -460,6 +463,11 @@ public class GameManager implements Listener {
       }
 
       this.deleteSettings(e.getPlayer());
+      this.inventories.remove(e.getPlayer());
+      this.noDamage.remove(e.getPlayer());
+      this.restartCooldown.remove(e.getPlayer());
+      this.liquids.remove(e.getPlayer());
+      stats.remove(e.getPlayer().getName().toLowerCase());
    }
 
    @EventHandler(
@@ -630,7 +638,7 @@ public class GameManager implements Listener {
    }
 
    public void addToNoDamage(Player p) {
-      this.noDamage.add(p);
+      if (!this.noDamage.contains(p)) this.noDamage.add(p);
    }
 
    public void removeFromNoDamage(final Player p) {
@@ -646,9 +654,7 @@ public class GameManager implements Listener {
 
    @EventHandler
    public void chunkUnload(ChunkUnloadEvent e) {
-      if (!e.getChunk().getWorld().getName().equals("dragonescape")) {
-         e.setCancelled(true);
-      }
+      // Let Bukkit unload inactive chunks, including the permanent solo-map world.
    }
 
    public void removeLiquidDamage(Player p) {

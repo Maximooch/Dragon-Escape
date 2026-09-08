@@ -1,0 +1,13 @@
+# StevesJourney
+
+checkpoints:
+- DE;2044;131;5133;1
+parkour-exp-reward: 10
+death-blocks: []
+status: HIDDEN
+cubics-reward: 10
+impossible-time: 0
+alias: ALIAS
+radius: 450
+time-of-day: 6000
+creator: Parcade Team

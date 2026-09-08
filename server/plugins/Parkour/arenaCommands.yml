@@ -1,0 +1,129 @@
+prefix: ''
+permission: parkour.default
+commands:
+  CREATE:
+    slot: 0
+    material: STONE
+    use-via-console: false
+    extra-permission: parkour.default
+    usage: create
+    arguments: ''
+  REMOVE:
+    slot: 0
+    material: STONE
+    use-via-console: false
+    extra-permission: parkour.default
+    usage: remove
+    arguments: ''
+  SPAWN:
+    slot: 0
+    material: STONE
+    use-via-console: false
+    extra-permission: parkour.default
+    usage: spawn
+    arguments: ''
+  CREATOR:
+    slot: 0
+    material: STONE
+    use-via-console: false
+    extra-permission: parkour.default
+    usage: creator
+    arguments: ''
+  ALIAS:
+    slot: 0
+    material: STONE
+    use-via-console: false
+    extra-permission: parkour.default
+    usage: alias
+    arguments: ''
+  STATUS:
+    slot: 0
+    material: STONE
+    use-via-console: false
+    extra-permission: parkour.default
+    usage: status
+    arguments: ''
+  TIME:
+    slot: 0
+    material: STONE
+    use-via-console: false
+    extra-permission: parkour.default
+    usage: time
+    arguments: ''
+  CUBICS:
+    slot: 0
+    material: STONE
+    use-via-console: false
+    extra-permission: parkour.default
+    usage: cubics
+    arguments: ''
+  EXP:
+    slot: 0
+    material: STONE
+    use-via-console: false
+    extra-permission: parkour.default
+    usage: exp
+    arguments: ''
+  RADIUS:
+    slot: 0
+    material: STONE
+    use-via-console: false
+    extra-permission: parkour.default
+    usage: radius
+    arguments: ''
+  ADD_DEATHBLOCK:
+    slot: 0
+    material: STONE
+    use-via-console: false
+    extra-permission: parkour.default
+    usage: add_deathblock
+    arguments: ''
+  REMOVE_DEATHBLOCK:
+    slot: 0
+    material: STONE
+    use-via-console: false
+    extra-permission: parkour.default
+    usage: remove_deathblock
+    arguments: ''
+  ADD_CHECKPOINT:
+    slot: 0
+    material: STONE
+    use-via-console: false
+    extra-permission: parkour.default
+    usage: add_checkpoint
+    arguments: ''
+  SET_CHECKPOINT:
+    slot: 0
+    material: STONE
+    use-via-console: false
+    extra-permission: parkour.default
+    usage: set_checkpoint
+    arguments: ''
+  REMOVE_CHECKPOINT:
+    slot: 0
+    material: STONE
+    use-via-console: false
+    extra-permission: parkour.default
+    usage: remove_checkpoint
+    arguments: ''
+  RESET_CHECKPOINTS:
+    slot: 0
+    material: STONE
+    use-via-console: false
+    extra-permission: parkour.default
+    usage: reset_checkpoints
+    arguments: ''
+  SUSPICIOUS_TIME:
+    slot: 0
+    material: STONE
+    use-via-console: false
+    extra-permission: parkour.default
+    usage: suspicious_time
+    arguments: ''
+  IMPOSSIBLE_TIME:
+    slot: 0
+    material: STONE
+    use-via-console: false
+    extra-permission: parkour.default
+    usage: impossible_time
+    arguments: ''

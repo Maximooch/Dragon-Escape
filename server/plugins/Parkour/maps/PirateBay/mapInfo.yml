@@ -1,0 +1,18 @@
+# PirateBay
+
+alias: PBAY
+creator: Mineplex
+impossible-time: 70000
+cubics-reward: 16
+parkour-exp-reward: 100
+time-of-day: 6000
+status: 0
+death-blocks:
+- 166
+- 51
+- 166
+- 8
+- 10
+- 11
+checkpoints:
+- DE;-1000;100;1000;0

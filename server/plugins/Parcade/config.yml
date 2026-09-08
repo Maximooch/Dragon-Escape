@@ -1,0 +1,132 @@
+# ================ Parcade Config ================
+
+min-distance-from-spawn-to-die-in-water: 20
+compass-slot: 4
+info-messages:
+- Create public lobbies by selecting a map in the &6Dragon Escape Public&e villager!
+- Create private games with kits by selecting a map in the &6Dragon Escape Solo&e villager!
+join-messages:
+- ''
+- '   &7Welcome back to &eDragon Escape!'
+- ''
+- '   &6By playing on our server, you agree to the '
+- '   &6rules detailed on:'
+- '   &chttps://www.parcade.net/rules/&6'
+- '   &6Please take some time to review them.'
+- '   &6If you are banned and you are going to'
+- '   &6submit an appeal, please do not provide,'
+- '   &6that you were unaware of the server rules.'
+- '   &6We will not be able to accept it.'
+- ''
+- '   &aThanks and have fun playing!'
+- ''
+header:
+- ''
+- '&e&lPARCADE'
+- '&6&lParkour &f&l+ &a&lArcade'
+- ''
+footer:
+- ''
+- '&6Currently playing on &aDragon Escape'
+- '&eParcade.net'
+- ''
+info-refresh-rate-seconds: 800
+villagers:
+  b55da5df-18b1-412a-81e0-42648d161de2:
+    loc: DE;6;94;5;-220
+    prof: 1
+    name:
+    - '&e&lParkour'
+    - "&7\xe2\u017e\u0153 switch server"
+    command: server Parkour
+  601e7834-b421-4d54-8281-ba12ca3e2aed:
+    loc: DE;7;94;3;-240
+    prof: 1
+    name:
+    - '&d&lHub'
+    - "&7\xe2\u017e\u0153 switch server"
+    command: server hub
+  b2fda530-0b34-47ad-afe6-b10831b7a0d5:
+    loc: DE;0;95;-7;0
+    prof: 3
+    name:
+    - '&e&lDRAGON ESCAPE'
+    - '&e&lPublic'
+    command: de browse
+  3cbd29f2-1f74-4258-b96b-3a23a17e7c2e:
+    loc: DE;-3;95;-6;-20
+    prof: 2
+    name:
+    - '&a&lDragon Escape'
+    - '&e&lSolo'
+    command: de solo
+  89297310-3f8e-4940-9f66-8e7fb7d6f673:
+    loc: DE;3;95;-6;20
+    prof: 2
+    name:
+    - '&b&lDragon Escape'
+    - '&e&lPractice'
+    command: de practice
+  739d3cf4-cc54-4776-80b0-f602173d4b3f:
+    loc: DE;-6;94;-3;-65
+    prof: 0
+    name:
+    - '&b&lDragon Escape'
+    - '&d&lRandom'
+    command: de random
+    shift-command: none
+  9b6fb58f-c31f-46be-b964-f3d315456899:
+    loc: DE;1;86;20;-311
+    prof: 0
+    name:
+    - '&dBack to'
+    - '&dspawn'
+    command: spawn
+    shift-command: none
+servers:
+  Hub:
+    display-name: Hub
+    is-this-server: false
+    slot-in-nav: 10
+    description:
+    - Go back to the main hub
+    - and explore the castle grounds!
+    material: 378
+  Parkour:
+    display-name: Parkour
+    is-this-server: false
+    slot-in-nav: 12
+    description:
+    - Race against the time and
+    - set new personal records!
+    material: 313
+  Events:
+    display-name: Events
+    is-this-server: false
+    slot-in-nav: 16
+    description:
+    - Coming soon
+    material: 388
+  dragonescape1:
+    display-name: Dragon Escape
+    is-this-server: true
+    slot-in-nav: 14
+    description:
+    - Run from a dragon
+    - and be the fastest runner
+    - at the same time!
+    material: 122
+help-messages:
+- '&6/de &e- list all Dragon Escape Classic commands'
+- '&6/desolo &e- list all Dragon Escape Solo commands'
+- '&6/friends &e- open friends menu'
+- '&6/discord &e- join our discord for news and updates'
+- '&6/gadgets &e- gadgets for Premium players'
+spawn-radius: 200
+rules-messages:
+- Follow the rules
+- Be nice to each other
+lobby-location: DE;0;94;0;-181
+lobby-parkour: DE;0;86;21;358
+lobby-parkour-end: DE;0;114;-27;179
+heads: {}

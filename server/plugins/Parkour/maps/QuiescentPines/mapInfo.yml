@@ -1,0 +1,18 @@
+# QuiescentPines
+
+alias: QP
+creator: Mvdge & BlueeFiree
+impossible-time: 95000
+cubics-reward: 30
+parkour-exp-reward: 100
+time-of-day: 0
+status: 0
+death-blocks:
+- 166
+- 8
+- 9
+- 10
+- 11
+- 9
+checkpoints:
+- DE;-1002;100;-4000;-1

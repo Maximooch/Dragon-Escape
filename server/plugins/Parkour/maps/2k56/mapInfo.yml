@@ -1,0 +1,17 @@
+# 2k56
+
+alias: 2K
+creator: VerryRare
+impossible-time: 54
+cubics-reward: 12
+parkour-exp-reward: 100
+time-of-day: 6000
+status: 1
+death-blocks:
+- 166
+- 8
+- 9
+- 10
+- 11
+checkpoints:
+- DE;1990;107;2030;179

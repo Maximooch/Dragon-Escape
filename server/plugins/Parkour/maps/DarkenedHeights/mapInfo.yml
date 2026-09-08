@@ -1,0 +1,17 @@
+# DarkenedHeights
+
+alias: DARK
+creator: Piju
+impossible-time: 93000
+cubics-reward: 20
+parkour-exp-reward: 100
+time-of-day: 0
+status: 0
+death-blocks:
+- 166
+- 8
+- 9
+- 10
+- 11
+checkpoints:
+- DE;-2000;100;-1000;269

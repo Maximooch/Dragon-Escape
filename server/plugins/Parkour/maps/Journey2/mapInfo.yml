@@ -1,0 +1,18 @@
+# Journey2
+
+alias: J2
+creator: Parota
+impossible-time: 74500
+cubics-reward: 30
+parkour-exp-reward: 100
+time-of-day: 6000
+status: 0
+death-blocks:
+- 166
+- 166
+- 8
+- 9
+- 10
+- 11
+checkpoints:
+- DE;-2870;124;3091;359

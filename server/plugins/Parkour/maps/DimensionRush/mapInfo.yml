@@ -1,0 +1,15 @@
+# DimensionRush
+
+alias: RUSH
+creator: Neotu_&_Others
+impossible-time: 40000
+cubics-reward: 30
+parkour-exp-reward: 100
+time-of-day: 6000
+status: 0
+death-blocks:
+- 166
+- 10
+- 11
+checkpoints:
+- DE;-999;100;3000;-360

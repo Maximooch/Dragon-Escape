@@ -1,0 +1,136 @@
+prefix: ''
+permission: parkour.default
+commands:
+  JOIN:
+    slot: 0
+    material: STONE
+    use-via-console: false
+    extra-permission: parkour.default
+    usage: join
+    arguments: ''
+  REJOIN:
+    slot: 0
+    material: STONE
+    use-via-console: false
+    extra-permission: parkour.default
+    usage: rejoin
+    arguments: ''
+  PRACTICE:
+    slot: 0
+    material: STONE
+    use-via-console: false
+    extra-permission: parkour.default
+    usage: practice
+    arguments: ''
+  RANDOM:
+    slot: 0
+    material: STONE
+    use-via-console: false
+    extra-permission: parkour.default
+    usage: random
+    arguments: ''
+  MAPS:
+    slot: 0
+    material: STONE
+    use-via-console: false
+    extra-permission: parkour.default
+    usage: maps
+    arguments: ''
+  PRACTICEMAPS:
+    slot: 0
+    material: STONE
+    use-via-console: false
+    extra-permission: parkour.default
+    usage: practicemaps
+    arguments: ''
+  FAVORITE:
+    slot: 0
+    material: STONE
+    use-via-console: false
+    extra-permission: parkour.default
+    usage: favorite
+    arguments: ''
+  UNFAVORITE:
+    slot: 0
+    material: STONE
+    use-via-console: false
+    extra-permission: parkour.default
+    usage: unfavorite
+    arguments: ''
+  STATS:
+    slot: 0
+    material: STONE
+    use-via-console: false
+    extra-permission: parkour.default
+    usage: stats
+    arguments: ''
+  MAPSTATS:
+    slot: 0
+    material: STONE
+    use-via-console: false
+    extra-permission: parkour.default
+    usage: mapstats
+    arguments: ''
+  LEADERBOARD:
+    slot: 0
+    material: STONE
+    use-via-console: false
+    extra-permission: parkour.default
+    usage: leaderboard
+    arguments: ''
+  LEAVE:
+    slot: 0
+    material: STONE
+    use-via-console: false
+    extra-permission: parkour.default
+    usage: leave
+    arguments: ''
+  LOBBY:
+    slot: 0
+    material: STONE
+    use-via-console: false
+    extra-permission: parkour.default
+    usage: lobby
+    arguments: ''
+  SETTINGS:
+    slot: 0
+    material: STONE
+    use-via-console: false
+    extra-permission: parkour.default
+    usage: settings
+    arguments: ''
+  RANDOMSETTINGS:
+    slot: 0
+    material: STONE
+    use-via-console: false
+    extra-permission: parkour.default
+    usage: randomsettings
+    arguments: ''
+  QUEUE:
+    slot: 0
+    material: STONE
+    use-via-console: false
+    extra-permission: parkour.default
+    usage: queue
+    arguments: ''
+  PAR_ADMIN:
+    slot: 0
+    material: STONE
+    use-via-console: false
+    extra-permission: parkour.default
+    usage: par_admin
+    arguments: ''
+  PARKOUR:
+    slot: 0
+    material: STONE
+    use-via-console: false
+    extra-permission: parkour.default
+    usage: parkour
+    arguments: ''
+  PAR_MAPS:
+    slot: 0
+    material: STONE
+    use-via-console: false
+    extra-permission: parkour.default
+    usage: par_maps
+    arguments: ''
