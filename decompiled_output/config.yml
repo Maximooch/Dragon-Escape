@@ -6,10 +6,6 @@ kits:
       intensity-2: 0.6
    leapclassic:
       cooldown: 8
-      mult: 1.42
-      horizontal: -0.3
-      y: -0.01
-      yAbove: 0.0
    disruptor:
       cooldown: 8
       intensity: 1.15

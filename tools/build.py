@@ -8,7 +8,10 @@ if not javac: raise SystemExit('Set JAVA_HOME to JDK 9+ or put javac on PATH.')
 plugins=root/'server/plugins'
 cp=os.pathsep.join(map(str,[root/'server/spigot.jar',plugins/'FastAsyncWorldEdit.jar',plugins/'WorldEdit.jar',plugins/'*']))
 prefix='me/radoje17/dragonescape/'
-names=['Arena','DragonEscape','Game','GameManager','dragon/Dragon','geometry/Sphere','utils/ArenaUtils']
+names=[
+ 'Arena','DragonEscape','Game','GameManager','dragon/Dragon','geometry/Sphere','utils/ArenaUtils',
+ 'commands/DragonEscapeCommand','kits/LeapVerticalKit','kits/MineplexLeapPhysics'
+]
 sources=[root/'decompiled_output'/(prefix+n+'.java') for n in names]
 sources += [root/'tools/LocalPlayers.java',root/'patches/parcade/me/tim/parcade/other/XpLeaderboard.java']
 subprocess.run([javac,'--release','8','-cp',cp,'-d',str(build)]+list(map(str,sources)),check=True)

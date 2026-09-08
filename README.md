@@ -38,10 +38,11 @@ Set `JAVA_HOME` to JDK 9+ (tested with JDK 23) or put `javac` on PATH:
 python tools\build.py
 ```
 
-Compiles for Java 8 and replaces only the seven maintained DE source classes/their inner classes, the Parcade leaderboard classes, and LocalPlayers. Remaining classes/resources come from the supplied JARs. This is a reproducible **patch build**, not a claim that the entire decompiled codebase builds cleanly. Binary default database configs are sanitized too.
+Compiles for Java 8 and replaces only the ten maintained DE source classes/their inner classes, the Parcade leaderboard classes, and LocalPlayers. Remaining classes/resources come from the supplied JARs. This is a reproducible **patch build**, not a claim that the entire decompiled codebase builds cleanly. Binary default database configs are sanitized too.
 
 ## What changed
 
+- Ported the original Mineplex Dragon Escape leap vector into the separate **Mineplex Leap** kit for solo A/B testing. It uses four charges, an eight-second cooldown, Mineplex's bounding-box grounded boost, and fixed reference physics; the existing Parcade Leap remains unchanged.
 - Removed 50 untracked startup schematic pastes; games allocate/reuse arenas on demand.
 - Serialized off-thread schematic loading, closed resources, and replaced fixed readiness timers with paste completion/failure states.
 - Budgeted idle/public arena restoration (shared 256-block / approximately 2-ms scheduling allowance) and preserved tile-entity data.
@@ -52,6 +53,14 @@ Compiles for Java 8 and replaces only the seven maintained DE source classes/the
 - LocalPlayers initializes missing settings/stats/player/currency schema without replacing Parcade NPC/menu/sidebar behavior.
 
 ## Verification and remaining limitations
+
+Run the deterministic Mineplex leap-vector checks with:
+
+```bat
+python tools\test-leap.py
+```
+
+The vector, height cap, grounded boost, and four-charge constants match Mineplex's `PerkLeap("Leap", 1, 1, 8000, 4)`/`UtilAction.velocity` implementation. Parcade's server does not contain Mineplex's custom velocity packet reapplication event, so live side-by-side testing remains the final check for any network-level movement difference.
 
 20 isolated real-server checks passed before packaging: 1,000 schematic block/data comparisons, chest-content preservation, 600-block restoration, failed-paste handling, exclusive restoring-arena reservations, reuse, and idempotent public cleanup. `tools/PerformanceChecks.java` is the test plugin source; run the isolated test with `python tools/test.py` after configuring JAVA8/JAVA_HOME and initializing local SQL via the launcher. It deliberately tests a corrupt schematic and should log that expected error.
 
